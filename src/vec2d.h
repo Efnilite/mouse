@@ -18,6 +18,6 @@ typedef struct {
  * @param vec2d The vector.
  * @return The length of the vector.
  */
-inline double vec2d_length(const Vec2d* vec2d);
+double vec2d_length(const Vec2d* vec2d);
 
 #endif //VEC2D_H

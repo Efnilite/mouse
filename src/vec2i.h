@@ -20,6 +20,6 @@ typedef struct {
  * @param vec2i The vector.
  * @return The length of the vector.
  */
-inline double vec2i_length(const Vec2i* vec2i);
+double vec2i_length(const Vec2i* vec2i);
 
 #endif //VEC2I_H

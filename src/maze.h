@@ -27,7 +27,7 @@ typedef struct {
  * @param y The y coordinate.
  * @return A pointer to the point at x, y.
  */
-inline Point* grid_get(Grid* grid, uint8_t x, uint8_t y);
+Point* grid_get(Grid* grid, uint8_t x, uint8_t y);
 
 /**
  * Initializes the grid by calculating the distance to the nearest goal.

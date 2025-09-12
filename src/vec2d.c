@@ -6,6 +6,6 @@
 
 #include <math.h>
 
-inline double vec2d_length(const Vec2d* vec2d) {
+double vec2d_length(const Vec2d* vec2d) {
     return sqrt(vec2d->x * vec2d->x + vec2d->y * vec2d->y);
 }

@@ -3,7 +3,7 @@
 
 #include "maze.h"
 
-int main(int argc, char* argv[]) {
+int main(void) {
     Point points[WIDTH * HEIGHT];
     Grid grid = {
         .points = points

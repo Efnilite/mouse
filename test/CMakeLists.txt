@@ -1,5 +1,5 @@
-
 add_test(
-        NAME main
-        COMMAND test
+        NAME test_grid_init
+        COMMAND bash test.sh test/test_grid_init.c
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )

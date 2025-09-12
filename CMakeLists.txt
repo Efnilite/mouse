@@ -3,4 +3,7 @@ project(mouse C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(mouse main.c)
+enable_testing()
+
+add_subdirectory(src)
+add_subdirectory(test)

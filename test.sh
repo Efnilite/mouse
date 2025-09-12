@@ -2,7 +2,7 @@
 
 mkdir target -p
 
-CFLAGS="-lm"
+CFLAGS="-lm -Wpedantic -Wall"
 SOURCES=$(find src -type f -name "*.c" ! -name "main.c")
 TARGET=target/"$(basename "$1" .c)"
 

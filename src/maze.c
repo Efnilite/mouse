@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-Point* grid_get(Grid* grid, const uint8_t x, const uint8_t y) {
+Point* grid_get(const Grid* grid, const uint8_t x, const uint8_t y) {
     return &grid->points[x + y * HEIGHT];
 }
 
@@ -54,7 +54,7 @@ static uint8_t grid_distance(const uint8_t x, const uint8_t y) {
     return umin;
 }
 
-void grid_init(Grid* grid) {
+void grid_init(const Grid* grid) {
     for (uint8_t x = 0; x < WIDTH; ++x) {
         for (uint8_t y = 0; y < HEIGHT; ++y) {
             grid_get(grid, x, y)->distance = grid_distance(x, y);

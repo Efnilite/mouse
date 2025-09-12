@@ -1,8 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
+//
+// Created by efy on 12/09/25.
+//
 
-#include "maze.h"
-#include "vec2d.h"
+#include <stdlib.h>
+#include <assert.h>
+
+#include "../src/maze.h"
+#include "../src/vec2d.h"
 
 Point points[WIDTH * HEIGHT];
 Grid grid = {points};

@@ -7,12 +7,10 @@
 
 #include "../src/maze.h"
 
-int main(void) {
-    Point points[WIDTH * HEIGHT];
-    Grid grid = {
-        .points = points
-    };
+Point points[WIDTH * HEIGHT];
+Grid grid = {points};
 
+int main(void) {
     grid_init(&grid);
 
     assert(grid_get(&grid, 0, 0)->distance == 14);

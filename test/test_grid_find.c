@@ -3,19 +3,36 @@
 //
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "../src/maze.h"
-#include "../src/vec2d.h"
+#include "../src/path.h"
+#include "../src/vec2i.h"
 
-Point points[WIDTH * HEIGHT];
-Grid grid = {points};
+static Point points[SIZE];
+static Grid grid = {points};
 
-Vec2d position = {0, 0};
-Vec2d speed = {0, 0};
+static uint8_t history_size = 0;
+static Point history[SIZE];
+
+static Vec2i pos = {0, 0};
 
 int main(void) {
-    grid_init(&grid);
+    grid_init(&grid, history, &history_size);
+
+    while (true) {
+        const Point* next = grid_calculate_path(&grid, history, history_size, &pos);
+
+        if (next->distance == 0) {
+            break;
+        }
+
+        if (history_size >= SIZE) {
+            return EXIT_FAILURE;
+        }
+
+        history[history_size] = *next;
+        history_size++;
+    }
 
     return EXIT_SUCCESS;
 }

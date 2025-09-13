@@ -6,6 +6,9 @@ add_executable(mouse
         vec2i.h
         maze.c
         maze.h
+        path.c
+        path.h
+
         hardware/motor.c
         hardware/motor.h
         hardware/sensor.c

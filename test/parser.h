@@ -9,6 +9,16 @@
 #include <stdint.h>
 
 /**
+ * Opens the maze file.
+ */
+void open_maze_file();
+
+/**
+ * Closes the maze file.
+ */
+void close_maze_file();
+
+/**
  * Populates a walls array.
  * @param x The x coordinate.
  * @param y The y coordinate.

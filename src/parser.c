@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../src/maze.h"
+#include "maze.h"
 
 #define TEST_MAZE_WIDTH 27
 #define TEST_MAZE_HEIGHT 14
@@ -16,7 +16,7 @@ FILE* file;
 char chars[TEST_MAZE_WIDTH * TEST_MAZE_HEIGHT];
 
 void open_maze_file() {
-    file = fopen("test/resources/maze", "r");
+    file = fopen("../maze", "r");
 
     if (file == NULL) {
         perror("Failed to open maze file");

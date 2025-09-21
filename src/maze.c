@@ -10,9 +10,9 @@
 #include <string.h>
 
 Point* grid_geti(const Grid* grid, const uint8_t x, const uint8_t y) {
-    const uint8_t i = x + y * HEIGHT;
+    const unsigned int i = x + y * HEIGHT;
 
-    if (i < 0 || i > SIZE) {
+    if (i >= SIZE) {
         return NULL;
     }
 

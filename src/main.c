@@ -4,6 +4,7 @@
 #include "maze.h"
 #include "path.h"
 #include "vec2i.h"
+#include "parser.h"
 
 static Point points[SIZE];
 static Grid grid = {points};
@@ -14,6 +15,8 @@ static Point history[SIZE];
 static Vec2i pos = {0, 0};
 
 int main(void) {
+    open_maze_file();
+
     grid_init(&grid, history, &history_size);
 
     while (true) {
@@ -30,6 +33,8 @@ int main(void) {
         history[history_size] = *next;
         history_size++;
     }
+
+    close_maze_file();
 
     return EXIT_SUCCESS;
 }

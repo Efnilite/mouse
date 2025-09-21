@@ -4,13 +4,12 @@ mkdir target -p
 
 CFLAGS="-lm -Wpedantic -Wall"
 SOURCES=$(find src -type f -name "*.c" ! -name "main.c")
-TEST_SOURCES="test/parser.c"
 TARGET=target/"$(basename "$1" .c)"
 
 rm "$TARGET" -f
 
 # shellcheck disable=SC2086
-gcc "$1" $SOURCES $TEST_SOURCES -o "$TARGET" $CFLAGS
+gcc "$1" $SOURCES -o "$TARGET" $CFLAGS
 if [[ ! -f "$TARGET" ]]; then
   echo "Error: $1 failed to compile"
   exit 1

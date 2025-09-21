@@ -9,6 +9,9 @@ add_executable(mouse
         path.c
         path.h
 
+        parser.h
+        parser.c
+
         hardware/motor.c
         hardware/motor.h
         hardware/sensor.c

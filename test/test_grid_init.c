@@ -16,6 +16,8 @@ static uint8_t history_size = 0;
 int main(void) {
     grid_init(&grid, history, &history_size);
 
+    assert(grid_geti(&grid, 234, 234) == NULL);
+
     assert(grid_geti(&grid, 0, 0)->distance == 14);
     assert(grid_geti(&grid, 1, 0)->distance == 13);
     assert(grid_geti(&grid, 2, 0)->distance == 12);

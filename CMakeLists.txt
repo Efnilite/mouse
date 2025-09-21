@@ -7,3 +7,5 @@ enable_testing()
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+configure_file(test/resources/maze maze COPYONLY)

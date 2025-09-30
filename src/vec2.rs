@@ -1,8 +1,8 @@
 /// 2d vector with ints
 #[derive(Copy, Clone, Debug)]
 pub struct Vec2i {
-    pub x: u16,
-    pub y: u16
+    pub x: u8,
+    pub y: u8
 }
 
 /// 2d vector with floats

@@ -8,7 +8,7 @@ pub struct Maze {
 }
 
 /// Calculates the distance to the specified point
-fn maze_calc_distance(x: u16, y: u16, cx: i8, cy: i8) -> u8 {
+fn maze_calc_distance(x: u8, y: u8, cx: i8, cy: i8) -> u8 {
     (i8::abs((x as i8) - cx) + i8::abs((y as i8) - cy)) as u8
 }
 
@@ -30,6 +30,7 @@ impl Maze {
                 points[(x + y * MAZE_WIDTH) as usize] = Segment {
                     pos: Vec2i { x, y },
                     distance: *distances.iter().min().unwrap(),
+                    walls: [false, false, false, false]
                 };
             }
         }
@@ -37,10 +38,11 @@ impl Maze {
         Maze { points }
     }
 
-    /// Returns all the points in this maze.
-    pub fn points(&self) -> [Segment; MAZE_SIZE] {
-        self.points
+    /// Returns the point at `x, y`.
+    pub fn get_point(&self, x: u8, y: u8) -> Segment {
+        self.points[(x + y * MAZE_WIDTH) as usize]
     }
+
 }
 
 impl fmt::Debug for Maze {
@@ -64,6 +66,7 @@ impl fmt::Debug for Maze {
 pub struct Segment {
     pos: Vec2i,
     pub distance: u8,
+    pub walls: [bool; 4]
 }
 
 impl Segment {
@@ -72,6 +75,7 @@ impl Segment {
         Segment {
             pos: Vec2i { x: 0, y: 0 },
             distance: 0,
+            walls: [false, false, false, false]
         }
     }
 

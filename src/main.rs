@@ -5,13 +5,13 @@ mod vec2;
 mod maze;
 
 /// The maze width.
-const MAZE_WIDTH: u16 = 16;
+const MAZE_WIDTH: u8 = 16;
 
 /// The maze height.
-const MAZE_HEIGHT: u16 = 16;
+const MAZE_HEIGHT: u8 = 16;
 
 /// The maze size.
-const MAZE_SIZE: usize = (MAZE_WIDTH * MAZE_HEIGHT) as usize;
+const MAZE_SIZE: usize = ((MAZE_WIDTH as u16) * (MAZE_HEIGHT as u16)) as usize;
 
 /// The maze wall thickness in meters.
 const MAZE_WALL_THICKNESS: f32 = 0.02;

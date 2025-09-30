@@ -1,5 +1,6 @@
-use crate::maze::Segment;
-use crate::MAZE_SIZE;
+use std::fmt;
+use crate::maze::{Maze, Segment};
+use crate::{MAZE_SIZE, MAZE_WIDTH};
 
 /// Represents a path that may be taken
 pub struct Path {
@@ -13,7 +14,7 @@ pub struct Path {
 impl Path {
 
     /// Returns a new path instance
-    fn new() -> Self {
+    pub fn new() -> Self {
         Path {
             size: 0,
             segments: [Segment::new(); MAZE_SIZE]
@@ -21,17 +22,17 @@ impl Path {
     }
 
     /// Returns the current size of this path.
-    fn size(&self) -> usize {
+    pub fn size(&self) -> usize {
         self.size
     }
 
     /// Return all segments that this path has taken.
-    fn segments(&self) -> [Segment; MAZE_SIZE] {
+    pub fn segments(&self) -> [Segment; MAZE_SIZE] {
         self.segments
     }
 
     /// Returns the current head of the path.
-    fn head(&self) -> Segment {
+    pub fn head(&self) -> Segment {
         self.segments[self.size]
     }
 
@@ -40,9 +41,18 @@ impl Path {
     /// ### Arguments
     ///
     /// * `segment` - The `Segment` to append to the path.
-    fn append(&mut self, segment: Segment) {
+    pub fn append(&mut self, segment: Segment) {
         self.segments[self.size] = segment;
         self.size += 1;
     }
 
+}
+
+impl fmt::Debug for Path {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for segment in self.segments.iter() {
+            write!(f, "{:?} -> ", segment.pos())?;
+        }
+        Ok(())
+    }
 }

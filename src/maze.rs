@@ -4,7 +4,7 @@ use std::fmt;
 
 /// Represents the maze
 pub struct Maze {
-    points: [Segment; MAZE_SIZE],
+    segments: [Segment; MAZE_SIZE],
 }
 
 /// Calculates the distance to the specified point
@@ -35,19 +35,19 @@ impl Maze {
             }
         }
 
-        Maze { points }
+        Maze { segments: points }
     }
 
     /// Returns the point at `x, y`.
     pub fn get_point(&self, x: u8, y: u8) -> Segment {
-        self.points[(x + y * MAZE_WIDTH) as usize]
+        self.segments[(x + y * MAZE_WIDTH) as usize]
     }
 
 }
 
 impl fmt::Debug for Maze {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, segment) in self.points.iter().enumerate() {
+        for (i, segment) in self.segments.iter().enumerate() {
             if segment.distance < 10 {
                 write!(f, " {:?} ", segment.distance)?;
             } else {
@@ -80,7 +80,7 @@ impl Segment {
     }
 
     /// Returns the position of this segment.
-    fn pos(&self) -> Vec2i {
+    pub fn pos(&self) -> Vec2i {
         self.pos
     }
 }

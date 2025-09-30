@@ -1,4 +1,5 @@
 use crate::maze::Maze;
+use crate::path::Path;
 use crate::vec2::{Vec2f, Vec2i};
 
 mod vec2;
@@ -21,11 +22,13 @@ fn main() {
     let fpos = Vec2f { x: 0f32, y: 0f32 };
     let ipos = Vec2i { x: 0, y: 0};
     let maze = Maze::new();
+    let path = Path::new();
 
     println!("Initialized with");
     println!("{:?}", fpos);
     println!("{:?}", ipos);
     println!("{:?}", maze);
+    println!("{:?}", path);
 
     println!("Hello, world!");
 }

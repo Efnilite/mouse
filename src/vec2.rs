@@ -1,7 +1,7 @@
 use std::fmt;
 
 /// 2d vector with ints
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub struct Vec2i {
     pub x: u8,
     pub y: u8
@@ -15,7 +15,7 @@ impl fmt::Debug for Vec2i {
 }
 
 /// 2d vector with floats
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub struct Vec2f {
     pub x: f32,
     pub y: f32

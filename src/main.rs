@@ -1,10 +1,12 @@
 use crate::maze::Maze;
 use crate::path::Path;
+use crate::pathfinder::next;
 use crate::vec2::{Vec2f, Vec2i};
 
 mod vec2;
 mod maze;
 mod path;
+mod pathfinder;
 
 /// The maze width.
 const MAZE_WIDTH: u8 = 16;
@@ -22,7 +24,7 @@ fn main() {
     let fpos = Vec2f { x: 0f32, y: 0f32 };
     let ipos = Vec2i { x: 0, y: 0};
     let maze = Maze::new();
-    let path = Path::new();
+    let mut path = Path::new();
 
     println!("Initialized with");
     println!("{:?}", fpos);
@@ -30,5 +32,15 @@ fn main() {
     println!("{:?}", maze);
     println!("{:?}", path);
 
-    println!("Hello, world!");
+    loop {
+        let next = next(&maze, &path);
+        path.append(next);
+
+        println!("Next: {:?}", next);
+
+        if next.distance == 0 {
+            break;
+        }
+    }
+
 }

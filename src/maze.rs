@@ -13,7 +13,6 @@ fn maze_calc_distance(x: u8, y: u8, cx: i8, cy: i8) -> u8 {
 }
 
 impl Maze {
-
     /// Creates a new maze instance.
     pub fn new() -> Self {
         let mut points = [Segment::new(); MAZE_SIZE];
@@ -30,7 +29,7 @@ impl Maze {
                 points[(x + y * MAZE_WIDTH) as usize] = Segment {
                     pos: Vec2i { x, y },
                     distance: *distances.iter().min().unwrap(),
-                    walls: [false, false, false, false]
+                    walls: [false, false, false, false],
                 };
             }
         }
@@ -39,10 +38,9 @@ impl Maze {
     }
 
     /// Returns the point at `x, y`.
-    pub fn get_point(&self, x: u8, y: u8) -> Segment {
+    pub fn point(&self, x: u8, y: u8) -> Segment {
         self.segments[(x + y * MAZE_WIDTH) as usize]
     }
-
 }
 
 impl fmt::Debug for Maze {
@@ -66,7 +64,16 @@ impl fmt::Debug for Maze {
 pub struct Segment {
     pos: Vec2i,
     pub distance: u8,
-    pub walls: [bool; 4]
+    pub walls: [bool; 4],
+}
+
+/// The relative direction.
+#[derive(PartialEq)]
+pub enum Relative {
+    NORTH,
+    WEST,
+    SOUTH,
+    EAST,
 }
 
 impl Segment {
@@ -74,14 +81,39 @@ impl Segment {
     pub fn new() -> Self {
         Segment {
             pos: Vec2i { x: 0, y: 0 },
-            distance: 0,
-            walls: [false, false, false, false]
+            distance: u8::MAX,
+            walls: [false, false, false, false],
         }
     }
 
     /// Returns the position of this segment.
     pub fn pos(&self) -> Vec2i {
         self.pos
+    }
+
+    /// Returns the segment relative to this one by direction `relative`.
+    ///
+    /// ### Arguments
+    ///
+    /// - `maze` - A maze ref.
+    /// - `relative` - The direction.
+    pub fn relative(&self, maze: &Maze, relative: Relative) -> Result<Segment, u8> {
+        if relative == Relative::SOUTH && self.pos.y > MAZE_HEIGHT - 1 {
+            return Err(0);
+        } else if relative == Relative::NORTH && self.pos.y == 0 {
+            return Err(0);
+        } else if relative == Relative::EAST && self.pos.x > MAZE_WIDTH - 1 {
+            return Err(0);
+        } else if relative == Relative::WEST && self.pos.x == 0 {
+            return Err(0);
+        }
+
+        Ok(match relative {
+            Relative::NORTH => maze.point(self.pos.x, self.pos.y - 1),
+            Relative::WEST => maze.point(self.pos.x - 1, self.pos.y),
+            Relative::SOUTH => maze.point(self.pos.x, self.pos.y + 1),
+            Relative::EAST => maze.point(self.pos.x + 1, self.pos.y),
+        })
     }
 }
 
@@ -99,7 +131,7 @@ mod tests {
             "11 10  9  8  7  6  5  4  4  5  6  7  8  9 10 11 ",
             "11 10  9  8  7  6  5  4  4  5  6  7  8  9 10 11 ",
             " 8  7  6  5  4  3  2  1  1  2  3  4  5  6  7  8 ",
-            " 7  6  5  4  3  2  1  0  0  1  2  3  4  5  6  7 "
+            " 7  6  5  4  3  2  1  0  0  1  2  3  4  5  6  7 ",
         ];
 
         for &line in &expected {

@@ -3,6 +3,7 @@ use crate::vec2::{Vec2f, Vec2i};
 
 mod vec2;
 mod maze;
+mod path;
 
 /// The maze width.
 const MAZE_WIDTH: u8 = 16;

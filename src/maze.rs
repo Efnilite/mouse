@@ -71,7 +71,7 @@ pub struct Segment {
 
 impl Segment {
     /// Creates a new default Segment.
-    fn new() -> Self {
+    pub fn new() -> Self {
         Segment {
             pos: Vec2i { x: 0, y: 0 },
             distance: 0,

@@ -1,9 +1,9 @@
 use crate::maze::Maze;
 use crate::path::Path;
 use crate::pathfinder::next;
-use crate::vec2::{Vec2f, Vec2i};
+use crate::vec::{Vecf, Veci};
 
-mod vec2;
+mod vec;
 mod maze;
 mod path;
 mod pathfinder;
@@ -21,8 +21,8 @@ const MAZE_SIZE: usize = ((MAZE_WIDTH as u16) * (MAZE_HEIGHT as u16)) as usize;
 const MAZE_WALL_THICKNESS: f32 = 0.02;
 
 fn main() {
-    let fpos = Vec2f { x: 0f32, y: 0f32 };
-    let ipos = Vec2i { x: 0, y: 0};
+    let fpos = Vecf { x: 0f32, y: 0f32 };
+    let ipos = Veci { x: 0, y: 0};
     let maze = Maze::new();
     let mut path = Path::new();
 

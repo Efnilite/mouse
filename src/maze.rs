@@ -1,4 +1,4 @@
-use crate::vec2::Vec2i;
+use crate::vec::Veci;
 use crate::{MAZE_HEIGHT, MAZE_SIZE, MAZE_WIDTH};
 use std::fmt;
 
@@ -27,7 +27,7 @@ impl Maze {
                 ];
 
                 points[(x + y * MAZE_WIDTH) as usize] = Segment {
-                    pos: Vec2i { x, y },
+                    pos: Veci { x, y },
                     distance: *distances.iter().min().unwrap(),
                     walls: [false, false, false, false],
                 };
@@ -62,7 +62,7 @@ impl fmt::Debug for Maze {
 /// Represents a point on the grid.
 #[derive(Copy, Clone, Debug)]
 pub struct Segment {
-    pos: Vec2i,
+    pos: Veci,
     pub distance: u8,
     pub walls: [bool; 4],
 }
@@ -80,14 +80,14 @@ impl Segment {
     /// Creates a new default Segment.
     pub fn new() -> Self {
         Segment {
-            pos: Vec2i { x: 0, y: 0 },
+            pos: Veci { x: 0, y: 0 },
             distance: u8::MAX,
             walls: [false, false, false, false],
         }
     }
 
     /// Returns the position of this segment.
-    pub fn pos(&self) -> Vec2i {
+    pub fn pos(&self) -> Veci {
         self.pos
     }
 

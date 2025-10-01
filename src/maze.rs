@@ -70,10 +70,10 @@ pub struct Segment {
 /// The relative direction.
 #[derive(PartialEq)]
 pub enum Relative {
-    NORTH,
-    WEST,
-    SOUTH,
-    EAST,
+    NORTH = 0,
+    EAST = 1,
+    SOUTH = 2,
+    WEST = 3,
 }
 
 impl Segment {

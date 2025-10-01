@@ -15,9 +15,9 @@ pub fn next(maze: &Maze, path: &Path) -> Segment {
 
         for dir in [
             Relative::NORTH,
-            Relative::WEST,
             Relative::EAST,
             Relative::SOUTH,
+            Relative::WEST,
         ] {
             let segment = current.relative(maze, dir);
 

@@ -25,14 +25,15 @@ impl Path {
         self.size
     }
 
-    /// Return all segments that this path has taken.
+    /// Return the _n_-th segment that this path has taken.
+    /// If the segment has not been visited yet, returns [Segment::new].
     pub fn segment(&self, index: usize) -> Segment {
         self.segments[index]
     }
 
     /// Returns the current head of the path.
     pub fn head(&self) -> Segment {
-        self.segments[self.size]
+        self.segments[self.size - 1]
     }
 
     /// Appends a segment to the path.

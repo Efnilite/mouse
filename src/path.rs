@@ -1,5 +1,6 @@
-use crate::MAZE_SIZE;
 use crate::maze::Segment;
+use crate::vec::Veci;
+use crate::MAZE_SIZE;
 use std::fmt;
 
 /// Represents a path that may be taken
@@ -8,7 +9,7 @@ pub struct Path {
     size: usize,
 
     /// The taken segments
-    segments: [Segment; MAZE_SIZE],
+    segments: [Veci; MAZE_SIZE],
 }
 
 impl Path {
@@ -16,7 +17,7 @@ impl Path {
     pub fn new() -> Self {
         Path {
             size: 1,
-            segments: [Segment::new(); MAZE_SIZE],
+            segments: [Veci::new(); MAZE_SIZE],
         }
     }
 
@@ -27,12 +28,12 @@ impl Path {
 
     /// Return the _n_-th segment that this path has taken.
     /// If the segment has not been visited yet, returns [Segment::new].
-    pub fn segment(&self, index: usize) -> Segment {
+    pub fn segment(&self, index: usize) -> Veci {
         self.segments[index]
     }
 
     /// Returns the current head of the path.
-    pub fn head(&self) -> Segment {
+    pub fn head(&self) -> Veci {
         self.segments[self.size - 1]
     }
 
@@ -41,7 +42,7 @@ impl Path {
     /// ### Arguments
     ///
     /// - `segment` - The `Segment` to append to the path.
-    pub fn append(&mut self, segment: Segment) {
+    pub fn append(&mut self, segment: Veci) {
         self.segments[self.size] = segment;
         self.size += 1;
     }
@@ -50,7 +51,7 @@ impl Path {
 impl fmt::Debug for Path {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for segment in self.segments.iter() {
-            write!(f, "{:?} -> ", segment.pos())?;
+            write!(f, "{:?} -> ", *segment)?;
         }
         Ok(())
     }
@@ -60,13 +61,14 @@ impl fmt::Debug for Path {
 mod tests {
     use crate::maze::Segment;
     use crate::path::Path;
+    use crate::vec::Veci;
 
     #[test]
     fn path() {
         let mut path = Path::new();
 
-        path.append(Segment::new());
+        path.append(Veci::new());
         assert_eq!(2, path.size());
-        assert_eq!(Segment::new().pos(), path.segment(0).pos());
+        assert_eq!(Segment::new().pos(), path.segment(0));
     }
 }

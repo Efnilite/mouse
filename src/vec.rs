@@ -7,6 +7,13 @@ pub struct Veci {
     pub y: u8,
 }
 
+impl Veci {
+    /// Returns a new [Veci] as zero-vector.
+    pub(crate) fn new() -> Self {
+        Veci { x: 0, y: 0 }
+    }
+}
+
 impl fmt::Debug for Veci {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "i({}, {})", self.x, self.y)?;
@@ -19,6 +26,13 @@ impl fmt::Debug for Veci {
 pub struct Vecf {
     pub x: f32,
     pub y: f32,
+}
+
+impl Vecf {
+    /// Returns a new [Vecf] as zero-vector.
+    fn new() -> Self {
+        Vecf { x: 0f32, y: 0f32 }
+    }
 }
 
 impl fmt::Debug for Vecf {

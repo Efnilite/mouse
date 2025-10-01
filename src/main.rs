@@ -23,7 +23,7 @@ const MAZE_WALL_THICKNESS: f32 = 0.02;
 fn main() {
     let fpos = Vecf { x: 0f32, y: 0f32 };
     let ipos = Veci { x: 0, y: 0 };
-    let maze = Maze::new();
+    let mut maze = Maze::new();
     let mut path = Path::new();
 
     println!("Initialized with");
@@ -32,9 +32,13 @@ fn main() {
     println!("{:?}", maze);
     println!("{:?}", path);
 
+    maze.update_walls(0, 0, [true, true, false, true]);
+    maze.update_walls(0, 1, [false, true, false, true]);
+    maze.update_walls(3, 2, [false, false, false, true]);
+
     loop {
         let next = next(&maze, &path);
-        path.append(next);
+        path.append(next.pos());
 
         println!("Next: {:?}", next);
 

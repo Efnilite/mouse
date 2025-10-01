@@ -11,7 +11,8 @@ pub fn next(maze: &Maze, path: &Path) -> Segment {
     let mut min_segment = Segment::new();
 
     for i in 0..path.size() {
-        let current = path.segment(i);
+        let pos = path.segment(i);
+        let current = maze.segment(pos.x, pos.y);
 
         for dir in [
             Relative::NORTH,
@@ -19,9 +20,13 @@ pub fn next(maze: &Maze, path: &Path) -> Segment {
             Relative::SOUTH,
             Relative::WEST,
         ] {
-            let segment = current.relative(maze, dir);
+            let segment = current.relative(maze, &dir);
 
             if segment.is_err() {
+                continue;
+            }
+
+            if current.walls[dir as usize] {
                 continue;
             }
 
@@ -50,7 +55,7 @@ mod tests {
 
         loop {
             let next = pathfinder::next(&maze, &path);
-            path.append(next);
+            path.append(next.pos());
 
             if next.distance == 0 {
                 break;
@@ -58,21 +63,21 @@ mod tests {
         }
 
         assert_eq!(15, path.size());
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).pos());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).pos());
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).pos());
-        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3).pos());
-        assert_eq!(Veci { x: 4, y: 0 }, path.segment(4).pos());
-        assert_eq!(Veci { x: 5, y: 0 }, path.segment(5).pos());
-        assert_eq!(Veci { x: 6, y: 0 }, path.segment(6).pos());
-        assert_eq!(Veci { x: 7, y: 0 }, path.segment(7).pos());
-        assert_eq!(Veci { x: 7, y: 1 }, path.segment(8).pos());
-        assert_eq!(Veci { x: 7, y: 2 }, path.segment(9).pos());
-        assert_eq!(Veci { x: 7, y: 3 }, path.segment(10).pos());
-        assert_eq!(Veci { x: 7, y: 4 }, path.segment(11).pos());
-        assert_eq!(Veci { x: 7, y: 5 }, path.segment(12).pos());
-        assert_eq!(Veci { x: 7, y: 6 }, path.segment(13).pos());
-        assert_eq!(Veci { x: 7, y: 7 }, path.segment(14).pos());
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(15).pos());
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0));
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1));
+        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2));
+        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3));
+        assert_eq!(Veci { x: 4, y: 0 }, path.segment(4));
+        assert_eq!(Veci { x: 5, y: 0 }, path.segment(5));
+        assert_eq!(Veci { x: 6, y: 0 }, path.segment(6));
+        assert_eq!(Veci { x: 7, y: 0 }, path.segment(7));
+        assert_eq!(Veci { x: 7, y: 1 }, path.segment(8));
+        assert_eq!(Veci { x: 7, y: 2 }, path.segment(9));
+        assert_eq!(Veci { x: 7, y: 3 }, path.segment(10));
+        assert_eq!(Veci { x: 7, y: 4 }, path.segment(11));
+        assert_eq!(Veci { x: 7, y: 5 }, path.segment(12));
+        assert_eq!(Veci { x: 7, y: 6 }, path.segment(13));
+        assert_eq!(Veci { x: 7, y: 7 }, path.segment(14));
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(15));
     }
 }

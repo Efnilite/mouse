@@ -37,10 +37,23 @@ impl Maze {
         Maze { segments: points }
     }
 
-    /// Returns the point at `x, y`.
-    pub fn point(&self, x: u8, y: u8) -> Segment {
+    /// Returns the segment at `x, y`.
+    pub fn segment(&self, x: u8, y: u8) -> Segment {
         self.segments[(x + y * MAZE_WIDTH) as usize]
     }
+
+    /// Updates the walls of the segment at `x, y` to the specified array.
+    pub fn update_walls(&mut self, x: u8, y: u8, walls: [bool; 4]) {
+        let i = (x + y * MAZE_WIDTH) as usize;
+        let existing = self.segments[i];
+
+        self.segments[i] = Segment {
+            pos: existing.pos,
+            distance: existing.distance,
+            walls
+        };
+    }
+
 }
 
 impl fmt::Debug for Maze {
@@ -80,7 +93,7 @@ impl Segment {
     /// Creates a new default Segment.
     pub fn new() -> Self {
         Segment {
-            pos: Veci { x: 0, y: 0 },
+            pos: Veci::new(),
             distance: u8::MAX,
             walls: [false, false, false, false],
         }
@@ -97,22 +110,22 @@ impl Segment {
     ///
     /// - `maze` - A maze ref.
     /// - `relative` - The direction.
-    pub fn relative(&self, maze: &Maze, relative: Relative) -> Result<Segment, u8> {
-        if relative == Relative::SOUTH && self.pos.y > MAZE_HEIGHT - 1 {
+    pub fn relative(&self, maze: &Maze, relative: &Relative) -> Result<Segment, u8> {
+        if *relative == Relative::SOUTH && self.pos.y > MAZE_HEIGHT - 1 {
             return Err(0);
-        } else if relative == Relative::NORTH && self.pos.y == 0 {
+        } else if *relative == Relative::NORTH && self.pos.y == 0 {
             return Err(0);
-        } else if relative == Relative::EAST && self.pos.x > MAZE_WIDTH - 1 {
+        } else if *relative == Relative::EAST && self.pos.x > MAZE_WIDTH - 1 {
             return Err(0);
-        } else if relative == Relative::WEST && self.pos.x == 0 {
+        } else if *relative == Relative::WEST && self.pos.x == 0 {
             return Err(0);
         }
 
-        Ok(match relative {
-            Relative::NORTH => maze.point(self.pos.x, self.pos.y - 1),
-            Relative::WEST => maze.point(self.pos.x - 1, self.pos.y),
-            Relative::SOUTH => maze.point(self.pos.x, self.pos.y + 1),
-            Relative::EAST => maze.point(self.pos.x + 1, self.pos.y),
+        Ok(match *relative {
+            Relative::NORTH => maze.segment(self.pos.x, self.pos.y - 1),
+            Relative::WEST => maze.segment(self.pos.x - 1, self.pos.y),
+            Relative::SOUTH => maze.segment(self.pos.x, self.pos.y + 1),
+            Relative::EAST => maze.segment(self.pos.x + 1, self.pos.y),
         })
     }
 }

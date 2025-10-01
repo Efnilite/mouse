@@ -1,5 +1,5 @@
-use crate::maze::Segment;
 use crate::MAZE_SIZE;
+use crate::maze::Segment;
 use std::fmt;
 
 /// Represents a path that may be taken
@@ -8,16 +8,15 @@ pub struct Path {
     size: usize,
 
     /// The taken segments
-    segments: [Segment; MAZE_SIZE]
+    segments: [Segment; MAZE_SIZE],
 }
 
 impl Path {
-
     /// Returns a new path instance
     pub fn new() -> Self {
         Path {
             size: 1,
-            segments: [Segment::new(); MAZE_SIZE]
+            segments: [Segment::new(); MAZE_SIZE],
         }
     }
 
@@ -45,7 +44,6 @@ impl Path {
         self.segments[self.size] = segment;
         self.size += 1;
     }
-
 }
 
 impl fmt::Debug for Path {
@@ -70,5 +68,4 @@ mod tests {
         assert_eq!(2, path.size());
         assert_eq!(Segment::new().pos(), path.segment(0).pos());
     }
-
 }

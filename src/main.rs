@@ -3,10 +3,10 @@ use crate::path::Path;
 use crate::pathfinder::next;
 use crate::vec::{Vecf, Veci};
 
-mod vec;
 mod maze;
 mod path;
 mod pathfinder;
+mod vec;
 
 /// The maze width.
 const MAZE_WIDTH: u8 = 16;
@@ -22,7 +22,7 @@ const MAZE_WALL_THICKNESS: f32 = 0.02;
 
 fn main() {
     let fpos = Vecf { x: 0f32, y: 0f32 };
-    let ipos = Veci { x: 0, y: 0};
+    let ipos = Veci { x: 0, y: 0 };
     let maze = Maze::new();
     let mut path = Path::new();
 
@@ -42,5 +42,4 @@ fn main() {
             break;
         }
     }
-
 }

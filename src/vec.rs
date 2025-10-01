@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(PartialEq, Copy, Clone)]
 pub struct Veci {
     pub x: u8,
-    pub y: u8
+    pub y: u8,
 }
 
 impl fmt::Debug for Veci {
@@ -18,7 +18,7 @@ impl fmt::Debug for Veci {
 #[derive(PartialEq, Copy, Clone)]
 pub struct Vecf {
     pub x: f32,
-    pub y: f32
+    pub y: f32,
 }
 
 impl fmt::Debug for Vecf {

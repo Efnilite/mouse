@@ -60,7 +60,7 @@ impl fmt::Debug for Maze {
 }
 
 /// Represents a point on the grid.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Segment {
     pos: Veci,
     pub distance: u8,

@@ -43,6 +43,11 @@ impl Maze {
         self.segments[(x + y * MAZE_WIDTH) as usize]
     }
 
+    /// Returns the segment at `x, y`.
+    pub fn segment_vec(&self, pos: Veci) -> Segment {
+        self.segment(pos.x, pos.y)
+    }
+
     /// Updates the walls of the segment at `x, y` to the specified array.
     pub fn update_walls(&mut self, x: u8, y: u8, walls: [bool; 4]) {
         let i = (x + y * MAZE_WIDTH) as usize;
@@ -123,22 +128,15 @@ impl Segment {
     /// - `maze` - A maze ref.
     /// - `relative` - The direction.
     pub fn relative(&self, maze: &Maze, relative: &Relative) -> Option<Segment> {
-        if *relative == Relative::South && self.pos.y > MAZE_HEIGHT - 1 {
-            return None;
-        } else if *relative == Relative::North && self.pos.y == 0 {
-            return None;
-        } else if *relative == Relative::East && self.pos.x > MAZE_WIDTH - 1 {
-            return None;
-        } else if *relative == Relative::West && self.pos.x == 0 {
-            return None;
-        }
+        let (x, y) = (self.pos.x, self.pos.y);
 
-        Some(match *relative {
-            Relative::North => maze.segment(self.pos.x, self.pos.y - 1),
-            Relative::West => maze.segment(self.pos.x - 1, self.pos.y),
-            Relative::South => maze.segment(self.pos.x, self.pos.y + 1),
-            Relative::East => maze.segment(self.pos.x + 1, self.pos.y),
-        })
+        match *relative {
+            Relative::North if y > 0 => Some(maze.segment(x, y - 1)),
+            Relative::South if y + 1 < MAZE_HEIGHT => Some(maze.segment(x, y + 1)),
+            Relative::West if x > 0 => Some(maze.segment(x - 1, y)),
+            Relative::East if x + 1 < MAZE_WIDTH => Some(maze.segment(x + 1, y)),
+            _ => None,
+        }
     }
 }
 

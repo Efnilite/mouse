@@ -38,13 +38,18 @@ fn main() {
     maze.update_walls(1, 1, [false, false, false, false]);
 
     loop {
-        let next = next(&maze, &path);
-        path.append(next.pos());
+        let result = next(&maze, &path);
 
-        println!("Next: {:?}", next);
+        if result.is_found() {
+            let next = result.unwrap();
+            path.append(next.pos());
 
-        if next.distance == 0 {
-            break;
+            if next.distance == 0 {
+                break;
+            }
+        } else {
+            unimplemented!("{:?}", format_args!("DeadEnd unimplemented at {:?}", path.head()))
         }
+
     }
 }

@@ -1,6 +1,7 @@
 use crate::vec::Veci;
 use crate::{MAZE_HEIGHT, MAZE_SIZE, MAZE_WIDTH};
 use std::fmt;
+use std::slice::Iter;
 
 /// Represents the maze
 pub struct Maze {
@@ -50,10 +51,9 @@ impl Maze {
         self.segments[i] = Segment {
             pos: existing.pos,
             distance: existing.distance,
-            walls
+            walls,
         };
     }
-
 }
 
 impl fmt::Debug for Maze {
@@ -81,12 +81,24 @@ pub struct Segment {
 }
 
 /// The relative direction.
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Relative {
-    NORTH = 0,
-    EAST = 1,
-    SOUTH = 2,
-    WEST = 3,
+    North,
+    East,
+    South,
+    West,
+}
+
+impl Relative {
+    pub fn iterator() -> Iter<'static, Relative> {
+        static DIRECTIONS: [Relative; 4] = [
+            Relative::North,
+            Relative::East,
+            Relative::South,
+            Relative::West,
+        ];
+        DIRECTIONS.iter()
+    }
 }
 
 impl Segment {
@@ -110,22 +122,22 @@ impl Segment {
     ///
     /// - `maze` - A maze ref.
     /// - `relative` - The direction.
-    pub fn relative(&self, maze: &Maze, relative: &Relative) -> Result<Segment, u8> {
-        if *relative == Relative::SOUTH && self.pos.y > MAZE_HEIGHT - 1 {
-            return Err(0);
-        } else if *relative == Relative::NORTH && self.pos.y == 0 {
-            return Err(0);
-        } else if *relative == Relative::EAST && self.pos.x > MAZE_WIDTH - 1 {
-            return Err(0);
-        } else if *relative == Relative::WEST && self.pos.x == 0 {
-            return Err(0);
+    pub fn relative(&self, maze: &Maze, relative: &Relative) -> Option<Segment> {
+        if *relative == Relative::South && self.pos.y > MAZE_HEIGHT - 1 {
+            return None;
+        } else if *relative == Relative::North && self.pos.y == 0 {
+            return None;
+        } else if *relative == Relative::East && self.pos.x > MAZE_WIDTH - 1 {
+            return None;
+        } else if *relative == Relative::West && self.pos.x == 0 {
+            return None;
         }
 
-        Ok(match *relative {
-            Relative::NORTH => maze.segment(self.pos.x, self.pos.y - 1),
-            Relative::WEST => maze.segment(self.pos.x - 1, self.pos.y),
-            Relative::SOUTH => maze.segment(self.pos.x, self.pos.y + 1),
-            Relative::EAST => maze.segment(self.pos.x + 1, self.pos.y),
+        Some(match *relative {
+            Relative::North => maze.segment(self.pos.x, self.pos.y - 1),
+            Relative::West => maze.segment(self.pos.x - 1, self.pos.y),
+            Relative::South => maze.segment(self.pos.x, self.pos.y + 1),
+            Relative::East => maze.segment(self.pos.x + 1, self.pos.y),
         })
     }
 }

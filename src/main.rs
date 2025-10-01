@@ -32,9 +32,10 @@ fn main() {
     println!("{:?}", maze);
     println!("{:?}", path);
 
-    maze.update_walls(0, 0, [true, true, false, true]);
-    maze.update_walls(0, 1, [false, true, false, true]);
-    maze.update_walls(3, 2, [false, false, false, true]);
+    maze.update_walls(0, 0, [true, false, true, true]);
+    maze.update_walls(1, 0, [true, false, false, false]);
+    maze.update_walls(2, 0, [true, true, true, false]);
+    maze.update_walls(1, 1, [false, false, false, false]);
 
     loop {
         let next = next(&maze, &path);

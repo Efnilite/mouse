@@ -14,19 +14,14 @@ pub fn next(maze: &Maze, path: &Path) -> Segment {
         let pos = path.segment(i);
         let current = maze.segment(pos.x, pos.y);
 
-        for dir in [
-            Relative::NORTH,
-            Relative::EAST,
-            Relative::SOUTH,
-            Relative::WEST,
-        ] {
-            let segment = current.relative(maze, &dir);
+        for (i, dir) in Relative::iterator().enumerate() {
+            let segment = current.relative(maze, dir);
 
-            if segment.is_err() {
+            if segment.is_none() {
                 continue;
             }
 
-            if current.walls[dir as usize] {
+            if current.walls[i] {
                 continue;
             }
 
@@ -79,5 +74,31 @@ mod tests {
         assert_eq!(Veci { x: 7, y: 6 }, path.segment(13));
         assert_eq!(Veci { x: 7, y: 7 }, path.segment(14));
         assert_eq!(Veci { x: 0, y: 0 }, path.segment(15));
+    }
+
+    #[test]
+    fn next_suboptimal_greedy() {
+        let mut maze = Maze::new();
+        let mut path = Path::new();
+
+        loop {
+            let next = pathfinder::next(&maze, &path);
+            path.append(next.pos());
+
+            if next.distance == 0 {
+                break;
+            }
+        }
+
+        maze.update_walls(0, 0, [true, false, true, true]);
+        maze.update_walls(1, 0, [true, false, false, false]);
+        maze.update_walls(2, 0, [true, true, true, false]);
+        maze.update_walls(1, 1, [false, false, false, false]);
+
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0));
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1));
+        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2));
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(3));
+        assert_eq!(Veci { x: 1, y: 1 }, path.segment(4));
     }
 }

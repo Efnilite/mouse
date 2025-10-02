@@ -4,8 +4,9 @@ use crate::path::Path;
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
 
-    /// Indicates that a dead end has been found.
-    DeadEnd,
+    /// Indicates that a suboptimal path has been found and that
+    /// the mouse cannot follow strictly decreasing segments.
+    Stuck,
 
     /// Indicates that a valid next segment has been found.
     Found(Segment)
@@ -16,7 +17,7 @@ impl Result {
 
     /// Whether this result is a dead end or not.
     pub fn is_dead_end(&self) -> bool {
-        matches!(*self, Result::DeadEnd)
+        matches!(*self, Result::Stuck)
     }
 
     /// Whether this result contains a found [Segment] or not.
@@ -28,7 +29,7 @@ impl Result {
     pub fn unwrap(self) -> Segment {
         match self {
             Result::Found(val) => val,
-            Result::DeadEnd => panic!("Called `Result::unwrap()` on no value"),
+            Result::Stuck => panic!("Called `Result::unwrap()` on no value"),
         }
     }
 
@@ -43,7 +44,7 @@ impl Result {
 ///
 /// ### Returns
 ///
-/// - [Result::DeadEnd] - The path has reached a local minimum.
+/// - [Result::Stuck] - The path has reached a local minimum.
 /// - [Result::Found] - A valid next segment has been found.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
@@ -74,7 +75,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     }
 
     if min_segment.distance == max_distance {
-        Result::DeadEnd
+        Result::Stuck
     } else {
         Result::Found(min_segment)
     }

@@ -47,9 +47,13 @@ fn main() {
             if next.distance == 0 {
                 break;
             }
-        } else {
-            unimplemented!("{:?}", format_args!("DeadEnd unimplemented at {:?}", path.head()))
+            continue;
         }
 
+        let head = maze.segment_vec(path.head());
+
+        if head.is_dead_end() {
+
+        }
     }
 }

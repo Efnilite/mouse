@@ -116,6 +116,12 @@ impl Segment {
         }
     }
 
+    /// Whether this segment is a dead end.
+    /// A dead end is defined as a segment with 3 walls and 1 entrance.
+    pub fn is_dead_end(&self) -> bool {
+        self.walls.iter().filter(|it| **it == true).count() == 3
+    }
+
     /// Returns the position of this segment.
     pub fn pos(&self) -> Veci {
         self.pos

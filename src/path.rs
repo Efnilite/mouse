@@ -5,36 +5,38 @@ use std::fmt;
 
 /// Represents a path that may be taken
 pub struct Path {
-    /// The current size of the path
-    size: usize,
-
     /// The taken segments
-    segments: [Veci; MAZE_SIZE],
+    segments: Vec<Veci>,
 }
 
 impl Path {
     /// Returns a new path instance
     pub fn new() -> Self {
         Path {
-            size: 1,
-            segments: [Veci::new(); MAZE_SIZE],
+            segments: Vec::with_capacity(MAZE_SIZE),
         }
     }
 
     /// Returns the current size of this path.
     pub fn size(&self) -> usize {
-        self.size
+        self.segments.len()
     }
 
     /// Return the _n_-th segment that this path has taken.
     /// If the segment has not been visited yet, returns [Segment::new].
-    pub fn segment(&self, index: usize) -> Veci {
-        self.segments[index]
+    pub fn segment(&self, index: usize) -> Option<Veci> {
+        if index >= self.size() {
+            return None
+        }
+        Some(self.segments[index])
     }
 
     /// Returns the current head of the path.
-    pub fn head(&self) -> Veci {
-        self.segments[self.size - 1]
+    pub fn head(&self) -> Option<Veci> {
+        if self.size() == 0 {
+            return None
+        }
+        Some(self.segments[self.size() - 1])
     }
 
     /// Appends a segment to the path.
@@ -43,8 +45,18 @@ impl Path {
     ///
     /// - `segment` - The `Segment` to append to the path.
     pub fn append(&mut self, segment: Veci) {
-        self.segments[self.size] = segment;
-        self.size += 1;
+        self.segments.push(segment);
+    }
+
+    /// Appends segments to the path.
+    ///
+    /// ### Arguments
+    ///
+    /// - `segments` - The `Segment`s to append to the path.
+    pub fn append_all(&mut self, segments: Vec<Veci>) {
+        for segment in segments.iter() {
+            self.segments.push(*segment)
+        }
     }
 }
 
@@ -69,6 +81,6 @@ mod tests {
 
         path.append(Veci::new());
         assert_eq!(2, path.size());
-        assert_eq!(Segment::new().pos(), path.segment(0));
+        assert_eq!(Segment::new().pos(), path.segment(0).expect("Failed to find first path segment"));
     }
 }

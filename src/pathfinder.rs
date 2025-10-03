@@ -89,6 +89,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 
 /// Returns a path to the unvisited segment location relative to the head of `path`.
 /// The segments are ordered from the current head of `path` to the target segment.
+/// Includes the head of `path`.
 ///
 /// ### Arguments
 ///
@@ -105,9 +106,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
     for i in (0..path.size()).rev() {
         let vec = path.segment(i).expect("Failed to find path segment");
         let current = maze.segment_vec(vec);
-        if i != path.size() - 1 {
-            to_unvisited.push(vec);
-        }
+    to_unvisited.push(vec);
 
         'dirs: for (j, dir) in Relative::iterator().enumerate() {
             if current.walls[j] {
@@ -165,7 +164,8 @@ mod tests {
                 continue;
             }
 
-            let segments = next_unvisited(&maze, &path);
+            let mut segments = next_unvisited(&maze, &path);
+            segments.remove(0);
             path.append_all(segments);
         }
     }

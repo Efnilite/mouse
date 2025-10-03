@@ -7,6 +7,7 @@ mod maze;
 mod path;
 mod pathfinder;
 mod vec;
+mod generator;
 
 /// The maze width.
 const MAZE_WIDTH: u8 = 16;
@@ -32,17 +33,6 @@ fn main() {
     println!("{:?}", maze);
     println!("{:?}", path);
 
-    // #####
-    maze.update_walls(0, 0, [true, false, false, true]);
-    maze.update_walls(1, 0, [true, false, false, false]);
-    maze.update_walls(2, 0, [true, false, true, false]);
-    maze.update_walls(3, 0, [true, true, false, false]);
-
-    maze.update_walls(0, 1, [false, true, false, false]);
-    maze.update_walls(1, 1, [false, false, true, true]);
-    maze.update_walls(2, 1, [true, false, true, false]);
-    maze.update_walls(3, 1, [false, true, true, false]);
-
     path.append(Veci::new());
 
     loop {
@@ -58,9 +48,19 @@ fn main() {
             continue;
         }
 
-        let segments = next_unvisited(&maze, &path);
-        path.append_all(segments);
+        let mut to_unvisited = next_unvisited(&maze, &path);
+
+        let target = maze.segment_vec(*to_unvisited.last().unwrap()).distance;
+        for (i, vec) in to_unvisited.iter().rev().enumerate() {
+            maze.update_distance(vec.x, vec.y, target + i as u8);
+        }
+
+        to_unvisited.remove(0); // remove head
+        path.append_all(to_unvisited);
     }
 
+    path.optimize();
+
+    println!("{:?}", maze);
     println!("{:?}", path);
 }

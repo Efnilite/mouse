@@ -59,15 +59,27 @@ impl Maze {
             walls,
         };
     }
+
+    /// Updates the distance of the segment at `x, y` to the specified value.
+    pub fn update_distance(&mut self, x: u8, y: u8, distance: u8) {
+        let i = (x + y * MAZE_WIDTH) as usize;
+        let existing = self.segments[i];
+
+        self.segments[i] = Segment {
+            pos: existing.pos,
+            distance,
+            walls: existing.walls,
+        };
+    }
 }
 
 impl fmt::Debug for Maze {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, segment) in self.segments.iter().enumerate() {
             if segment.distance < 10 {
-                write!(f, " {:?} ", segment.distance)?;
+                write!(f, " {:?} ({:?}) ", segment.distance, segment.walls.iter().filter(|it| **it == true).count())?;
             } else {
-                write!(f, "{:?} ", segment.distance)?;
+                write!(f, "{:?} ({:?}) ", segment.distance, segment.walls.iter().filter(|it| **it == true).count())?;
             }
             if (i + 1) % MAZE_WIDTH as usize == 0 {
                 writeln!(f)?;

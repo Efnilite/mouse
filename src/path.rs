@@ -54,8 +54,8 @@ impl Path {
     ///
     /// - `segments` - The `Segment`s to append to the path.
     pub fn append_all(&mut self, segments: Vec<Veci>) {
-        for segment in segments.iter() {
-            self.segments.push(*segment)
+        for segment in segments.into_iter() {
+            self.segments.push(segment)
         }
     }
 
@@ -101,8 +101,12 @@ impl Path {
 
 impl fmt::Debug for Path {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for segment in self.segments.iter() {
-            write!(f, "{:?} -> ", *segment)?;
+        for (i, segment) in self.segments.iter().enumerate() {
+            if i == self.size() - 1 {
+                write!(f, "{:?}", *segment)?;
+            } else {
+                write!(f, "{:?} -> ", *segment)?;
+            }
         }
         Ok(())
     }

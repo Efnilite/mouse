@@ -1,7 +1,7 @@
 use std::fmt;
 
 /// 2d vector with ints
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Eq, Hash)]
 pub struct Veci {
     pub x: u8,
     pub y: u8,

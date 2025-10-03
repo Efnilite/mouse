@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
 use crate::vec::Veci;
@@ -56,18 +57,22 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     for i in 0..path.size() {
         let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
 
-        for (i, dir) in Relative::iterator().enumerate() {
+        'dirs: for (i, dir) in Relative::iterator().enumerate() {
             if current.walls[i] {
-                continue;
+                continue 'dirs;
             }
 
             let segment = current.relative(maze, dir);
 
             if segment.is_none() {
-                continue;
+                continue 'dirs;
             }
 
             let segment = segment.unwrap();
+
+            if path.contains(segment.pos()) {
+                continue 'dirs;
+            }
 
             if segment.distance < min_segment.distance {
                 min_segment = segment;
@@ -83,7 +88,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 }
 
 /// Returns a path to the unvisited segment location relative to the head of `path`.
-/// Does not include the head of `path`.
+/// The segments are ordered from the current head of `path` to the target segment.
 ///
 /// ### Arguments
 ///
@@ -95,43 +100,38 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 /// A [Vec] with all segment locations that should be followed to the nearest unvisited
 /// segment.
 pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
-    let mut vec = Vec::with_capacity(12);
+    let mut to_unvisited = Vec::with_capacity(12);
 
     for i in (0..path.size()).rev() {
-        let veci = path.segment(i).expect("Failed to find path segment");
-        let current = maze.segment_vec(veci);
-        if i < path.size() - 1 {
-            vec.push(veci);
+        let vec = path.segment(i).expect("Failed to find path segment");
+        let current = maze.segment_vec(vec);
+        if i != path.size() - 1 {
+            to_unvisited.push(vec);
         }
 
-        for (i, dir) in Relative::iterator().enumerate() {
-            if current.walls[i] {
-                continue;
+        'dirs: for (j, dir) in Relative::iterator().enumerate() {
+            if current.walls[j] {
+                continue 'dirs;
             }
 
             let segment = current.relative(maze, dir);
 
             if segment.is_none() {
-                continue;
+                continue 'dirs;
             }
 
             let segment = segment.unwrap();
 
-            let mut visited = false;
-            for i in (0..path.size()).rev() {
-                if segment.pos() == path.segment(i).expect("Failed to find path segment") {
-                    visited = true;
-                }
+            if path.contains(segment.pos()) {
+                continue 'dirs;
             }
 
-            if !visited {
-                vec.push(segment.pos());
-                return vec;
-            }
+            to_unvisited.push(segment.pos());
+            return to_unvisited;
         }
     }
 
-    vec
+    to_unvisited
 }
 
 #[cfg(test)]
@@ -139,6 +139,7 @@ mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
     use crate::pathfinder;
+    use crate::pathfinder::next_unvisited;
     use crate::vec::Veci;
 
     /// Finds any segment that has a distance of zero.
@@ -161,9 +162,11 @@ mod tests {
                 if next.distance == 0 {
                     break;
                 }
-            } else {
-                unimplemented!("{:?}", format_args!("DeadEnd unimplemented at {:?}", path.head()))
+                continue;
             }
+
+            let segments = next_unvisited(&maze, &path);
+            path.append_all(segments);
         }
     }
 
@@ -175,22 +178,22 @@ mod tests {
         find(&mut maze, &mut path);
 
         assert_eq!(15, path.size());
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 4, y: 0 }, path.segment(4).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 5, y: 0 }, path.segment(5).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 6, y: 0 }, path.segment(6).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 0 }, path.segment(7).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 1 }, path.segment(8).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 2 }, path.segment(9).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 3 }, path.segment(10).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 4 }, path.segment(11).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 5 }, path.segment(12).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 6 }, path.segment(13).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 7, y: 7 }, path.segment(14).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(15).expect("Failed to find path segment"));
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Veci { x: 4, y: 0 }, path.segment(4).unwrap());
+        assert_eq!(Veci { x: 5, y: 0 }, path.segment(5).unwrap());
+        assert_eq!(Veci { x: 6, y: 0 }, path.segment(6).unwrap());
+        assert_eq!(Veci { x: 7, y: 0 }, path.segment(7).unwrap());
+        assert_eq!(Veci { x: 7, y: 1 }, path.segment(8).unwrap());
+        assert_eq!(Veci { x: 7, y: 2 }, path.segment(9).unwrap());
+        assert_eq!(Veci { x: 7, y: 3 }, path.segment(10).unwrap());
+        assert_eq!(Veci { x: 7, y: 4 }, path.segment(11).unwrap());
+        assert_eq!(Veci { x: 7, y: 5 }, path.segment(12).unwrap());
+        assert_eq!(Veci { x: 7, y: 6 }, path.segment(13).unwrap());
+        assert_eq!(Veci { x: 7, y: 7 }, path.segment(14).unwrap());
+        assert!(path.segment(15).is_none());
     }
 
     #[test]
@@ -206,11 +209,11 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 0, y: 1 }, path.segment(1).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 0, y: 2 }, path.segment(2).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 2 }, path.segment(3).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 2, y: 2 }, path.segment(4).expect("Failed to find path segment"));
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Veci { x: 0, y: 1 }, path.segment(1).unwrap());
+        assert_eq!(Veci { x: 0, y: 2 }, path.segment(2).unwrap());
+        assert_eq!(Veci { x: 1, y: 2 }, path.segment(3).unwrap());
+        assert_eq!(Veci { x: 2, y: 2 }, path.segment(4).unwrap());
     }
 
     #[test]
@@ -231,16 +234,16 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 1 }, path.segment(2).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 2, y: 1 }, path.segment(3).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 2, y: 2 }, path.segment(4).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 3, y: 2 }, path.segment(5).expect("Failed to find path segment"));
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Veci { x: 1, y: 1 }, path.segment(2).unwrap());
+        assert_eq!(Veci { x: 2, y: 1 }, path.segment(3).unwrap());
+        assert_eq!(Veci { x: 2, y: 2 }, path.segment(4).unwrap());
+        assert_eq!(Veci { x: 3, y: 2 }, path.segment(5).unwrap());
     }
 
     #[test]
-    fn next_branch() {
+    fn general_branch() {
         let mut maze = Maze::new();
         let mut path = Path::new();
 
@@ -254,10 +257,48 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(3).expect("Failed to find path segment"));
-        assert_eq!(Veci { x: 1, y: 1 }, path.segment(4).expect("Failed to find path segment"));
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Veci { x: 1, y: 1 }, path.segment(4).unwrap());
+    }
+
+    #[test]
+    fn general_nontrivial_branch() {
+        let mut maze = Maze::new();
+        let mut path = Path::new();
+
+        // #######
+        // #     #
+        // # # # #
+        // # #   #
+        // # #####
+        maze.update_walls(0, 0, [true, false, false, true]);
+        maze.update_walls(1, 0, [true, false, false, false]);
+        maze.update_walls(2, 0, [true, false, true, false]);
+        maze.update_walls(3, 0, [true, true, false, false]);
+
+        maze.update_walls(0, 1, [false, true, false, true]);
+        maze.update_walls(1, 1, [false, false, true, true]);
+        maze.update_walls(2, 1, [true, false, true, false]);
+        maze.update_walls(3, 1, [false, true, true, false]);
+
+        find(&mut maze, &mut path);
+
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Veci { x: 3, y: 1 }, path.segment(4).unwrap());
+        assert_eq!(Veci { x: 2, y: 1 }, path.segment(5).unwrap());
+        assert_eq!(Veci { x: 1, y: 1 }, path.segment(6).unwrap());
+        assert_eq!(Veci { x: 2, y: 1 }, path.segment(7).unwrap());
+        assert_eq!(Veci { x: 3, y: 1 }, path.segment(8).unwrap());
+        assert_eq!(Veci { x: 3, y: 0 }, path.segment(9).unwrap());
+        assert_eq!(Veci { x: 2, y: 0 }, path.segment(10).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(11).unwrap());
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(12).unwrap());
+        assert_eq!(Veci { x: 0, y: 1 }, path.segment(13).unwrap());
     }
 }

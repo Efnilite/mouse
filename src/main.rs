@@ -1,6 +1,6 @@
 use crate::maze::Maze;
 use crate::path::Path;
-use crate::pathfinder::{next, next_unvisited};
+use crate::pathfinder::next_unvisited;
 use crate::vec::{Vecf, Veci};
 
 mod maze;
@@ -32,15 +32,21 @@ fn main() {
     println!("{:?}", maze);
     println!("{:?}", path);
 
-    maze.update_walls(0, 0, [true, false, true, true]);
+    // #####
+    maze.update_walls(0, 0, [true, false, false, true]);
     maze.update_walls(1, 0, [true, false, false, false]);
-    maze.update_walls(2, 0, [true, true, true, false]);
-    maze.update_walls(1, 1, [false, false, false, false]);
+    maze.update_walls(2, 0, [true, false, true, false]);
+    maze.update_walls(3, 0, [true, true, false, false]);
+
+    maze.update_walls(0, 1, [false, true, false, false]);
+    maze.update_walls(1, 1, [false, false, true, true]);
+    maze.update_walls(2, 1, [true, false, true, false]);
+    maze.update_walls(3, 1, [false, true, true, false]);
 
     path.append(Veci::new());
 
     loop {
-        let result = next(&maze, &path);
+        let result = pathfinder::next(&maze, &path);
 
         if result.is_found() {
             let next = result.unwrap();
@@ -52,12 +58,8 @@ fn main() {
             continue;
         }
 
-        let head = maze.segment_vec(path.head().expect("Failed to find path head"));
-
-        if head.is_dead_end() {
-            let segments = next_unvisited(&maze, &path);
-            path.append_all(segments);
-        }
+        let segments = next_unvisited(&maze, &path);
+        path.append_all(segments);
     }
 
     println!("{:?}", path);

@@ -1,5 +1,6 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use crate::maze::{Maze, Relative, Segment};
+use crate::MAZE_SIZE;
 use crate::path::Path;
 use crate::vec::Veci;
 
@@ -57,7 +58,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     for i in 0..path.size() {
         let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
 
-        'dirs: for (i, dir) in Relative::iterator().enumerate() {
+        'dirs: for (i, dir) in Relative::iter().enumerate() {
             if current.walls[i] {
                 continue 'dirs;
             }
@@ -87,6 +88,13 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     }
 }
 
+struct ExploredNode {
+    /// The parent of the explored node, null if it is the root.
+    parent: Option<Veci>,
+    /// The distance to the root node.
+    distance: u8,
+}
+
 /// Returns a path to the unvisited segment location relative to the head of `path`.
 /// The segments are ordered from the current head of `path` to the target segment.
 /// Includes the head of `path`.
@@ -101,36 +109,56 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 /// A [Vec] with all segment locations that should be followed to the nearest unvisited
 /// segment.
 pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
-    let mut to_unvisited = Vec::with_capacity(12);
+    let mut to_explore: VecDeque<Veci> = VecDeque::with_capacity(MAZE_SIZE);
+    // contains the vecs that have been explored, with the value being the parent vec.
+    // for the root, value is `None`.
+    let mut explored: HashMap<Veci, Option<Veci>> = HashMap::with_capacity(MAZE_SIZE);
 
-    for i in (0..path.size()).rev() {
-        let vec = path.segment(i).expect("Failed to find path segment");
-        let current = maze.segment_vec(vec);
-    to_unvisited.push(vec);
+    {
+        let root = path.head().unwrap_or_else(|| Veci::new());
+        explored.insert(root, None);
+        to_explore.push_back(root);
+    }
 
-        'dirs: for (j, dir) in Relative::iterator().enumerate() {
-            if current.walls[j] {
+    while !to_explore.is_empty() {
+        let current_pos = to_explore.pop_front().expect("Failed to find unvisited node in entire maze");
+
+        if !path.contains(current_pos) {
+            let mut to_root = Vec::with_capacity(explored.len());
+
+            let mut parent = Some(current_pos);
+            while parent != None {
+                let value = parent.unwrap();
+                to_root.push(value);
+                parent = explored[&value];
+            }
+
+            to_root.reverse();
+            return to_root;
+        }
+
+        let current_segment = maze.segment_vec(current_pos);
+        'dirs: for (i, dir) in Relative::iter().enumerate() {
+            if current_segment.walls[i] {
                 continue 'dirs;
             }
 
-            let segment = current.relative(maze, dir);
-
-            if segment.is_none() {
+            let relative = current_segment.relative(maze, dir);
+            if relative.is_none() {
                 continue 'dirs;
             }
 
-            let segment = segment.unwrap();
-
-            if path.contains(segment.pos()) {
-                continue 'dirs;
+            let segment = relative.unwrap();
+            if explored.contains_key(&segment.pos()) {
+                continue;
             }
 
-            to_unvisited.push(segment.pos());
-            return to_unvisited;
+            explored.insert(segment.pos(), Some(current_pos));
+            to_explore.push_back(segment.pos());
         }
     }
 
-    to_unvisited
+    panic!("Failed to find unvisited node in entire maze")
 }
 
 #[cfg(test)]
@@ -293,12 +321,8 @@ mod tests {
         assert_eq!(Veci { x: 3, y: 1 }, path.segment(4).unwrap());
         assert_eq!(Veci { x: 2, y: 1 }, path.segment(5).unwrap());
         assert_eq!(Veci { x: 1, y: 1 }, path.segment(6).unwrap());
-        assert_eq!(Veci { x: 2, y: 1 }, path.segment(7).unwrap());
-        assert_eq!(Veci { x: 3, y: 1 }, path.segment(8).unwrap());
-        assert_eq!(Veci { x: 3, y: 0 }, path.segment(9).unwrap());
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(10).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(11).unwrap());
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(12).unwrap());
-        assert_eq!(Veci { x: 0, y: 1 }, path.segment(13).unwrap());
+        assert_eq!(Veci { x: 1, y: 0 }, path.segment(7).unwrap());
+        assert_eq!(Veci { x: 0, y: 0 }, path.segment(8).unwrap());
+        assert_eq!(Veci { x: 0, y: 1 }, path.segment(9).unwrap());
     }
 }

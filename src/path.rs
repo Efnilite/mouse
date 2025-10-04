@@ -75,6 +75,7 @@ impl Path {
 
     /// Optimizes this path by removing any cycle that has the same start and end point.
     /// Assigns `self.segments` to a new optimized [Vec].
+    /// todo! avoid bulk optimization and optimize as soon as append_all/append is called
     pub fn optimize(&mut self) {
         // the first found position of every veci
         let mut occurrences = HashMap::new();

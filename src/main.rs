@@ -33,6 +33,11 @@ fn main() {
     println!("{:?}", maze);
     println!("{:?}", path);
 
+    maze.update_walls(0, 0, [true, false, true, true]);
+    maze.update_walls(1, 0, [true, false, false, false]);
+    maze.update_walls(2, 0, [true, true, true, false]);
+    maze.update_walls(1, 1, [false, false, false, false]);
+
     path.append(Veci::new());
 
     loop {
@@ -49,12 +54,6 @@ fn main() {
         }
 
         let mut to_unvisited = next_unvisited(&maze, &path);
-
-        let target = maze.segment_vec(*to_unvisited.last().unwrap()).distance;
-        for (i, vec) in to_unvisited.iter().rev().enumerate() {
-            maze.update_distance(vec.x, vec.y, target + i as u8);
-        }
-
         to_unvisited.remove(0); // remove head
         path.append_all(to_unvisited);
     }

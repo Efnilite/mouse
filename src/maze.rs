@@ -77,9 +77,9 @@ impl fmt::Debug for Maze {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, segment) in self.segments.iter().enumerate() {
             if segment.distance < 10 {
-                write!(f, " {:?} ({:?}) ", segment.distance, segment.walls.iter().filter(|it| **it == true).count())?;
+                write!(f, " {:?} ", segment.distance)?;
             } else {
-                write!(f, "{:?} ({:?}) ", segment.distance, segment.walls.iter().filter(|it| **it == true).count())?;
+                write!(f, "{:?} ", segment.distance)?;
             }
             if (i + 1) % MAZE_WIDTH as usize == 0 {
                 writeln!(f)?;
@@ -107,7 +107,7 @@ pub enum Relative {
 }
 
 impl Relative {
-    pub fn iterator() -> Iter<'static, Relative> {
+    pub fn iter() -> Iter<'static, Relative> {
         static DIRECTIONS: [Relative; 4] = [
             Relative::North,
             Relative::East,

@@ -1,7 +1,6 @@
 use crate::vec::Veci;
 use crate::{MAZE_HEIGHT, MAZE_SIZE, MAZE_WIDTH};
-use std::fmt;
-use std::slice::Iter;
+use core::slice::Iter;
 
 /// Represents the maze
 pub struct Maze {
@@ -73,22 +72,6 @@ impl Maze {
     }
 }
 
-impl fmt::Debug for Maze {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, segment) in self.segments.iter().enumerate() {
-            if segment.distance < 10 {
-                write!(f, " {:?} ", segment.distance)?;
-            } else {
-                write!(f, "{:?} ", segment.distance)?;
-            }
-            if (i + 1) % MAZE_WIDTH as usize == 0 {
-                writeln!(f)?;
-            }
-        }
-        Ok(())
-    }
-}
-
 /// Represents a point on the grid.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Segment {
@@ -154,29 +137,6 @@ impl Segment {
             Relative::West if x > 0 => Some(maze.segment(x - 1, y)),
             Relative::East if x + 1 < MAZE_WIDTH => Some(maze.segment(x + 1, y)),
             _ => None,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::maze::Maze;
-
-    #[test]
-    fn maze_new() {
-        let maze = Maze::new();
-        let expected = [
-            "14 13 12 11 10  9  8  7  7  8  9 10 11 12 13 14 ",
-            "13 12 11 10  9  8  7  6  6  7  8  9 10 11 12 13 ",
-            "12 11 10  9  8  7  6  5  5  6  7  8  9 10 11 12 ",
-            "11 10  9  8  7  6  5  4  4  5  6  7  8  9 10 11 ",
-            "11 10  9  8  7  6  5  4  4  5  6  7  8  9 10 11 ",
-            " 8  7  6  5  4  3  2  1  1  2  3  4  5  6  7  8 ",
-            " 7  6  5  4  3  2  1  0  0  1  2  3  4  5  6  7 ",
-        ];
-
-        for &line in &expected {
-            assert!(format!("{:?}", maze).lines().any(|l| l == line));
         }
     }
 }

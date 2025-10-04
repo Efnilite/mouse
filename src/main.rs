@@ -1,13 +1,14 @@
-use crate::maze::Maze;
-use crate::path::Path;
-use crate::pathfinder::next_unvisited;
-use crate::vec::{Vecf, Veci};
+//! Blinks the LED on a Pico board
+//!
+//! This will blink an LED attached to GP25, which is the pin the Pico uses for the on-board LED.
+#![no_std]
+#![no_main]
+extern crate alloc;
 
-mod maze;
-mod path;
-mod pathfinder;
 mod vec;
-mod generator;
+mod path;
+mod maze;
+mod pathfinder;
 
 /// The maze width.
 const MAZE_WIDTH: u8 = 16;
@@ -18,48 +19,70 @@ const MAZE_HEIGHT: u8 = 16;
 /// The maze size.
 const MAZE_SIZE: usize = ((MAZE_WIDTH as u16) * (MAZE_HEIGHT as u16)) as usize;
 
-/// The maze wall thickness in meters.
-const MAZE_WALL_THICKNESS: f32 = 0.02;
+use bsp::entry;
+use defmt::*;
+use defmt_rtt as _;
+use embedded_hal::digital::OutputPin;
+use panic_probe as _;
+use rp_pico as bsp;
 
-fn main() {
-    let fpos = Vecf { x: 0f32, y: 0f32 };
-    let ipos = Veci { x: 0, y: 0 };
-    let mut maze = Maze::new();
-    let mut path = Path::new();
+use bsp::hal::{
+    clocks::{Clock, init_clocks_and_plls},
+    pac,
+    sio::Sio,
+    watchdog::Watchdog,
+};
 
-    println!("Initialized with");
-    println!("{:?}", fpos);
-    println!("{:?}", ipos);
-    println!("{:?}", maze);
-    println!("{:?}", path);
+#[entry]
+fn main() -> ! {
+    info!("Program start");
+    let mut pac = pac::Peripherals::take().unwrap();
+    let core = pac::CorePeripherals::take().unwrap();
+    let mut watchdog = Watchdog::new(pac.WATCHDOG);
+    let sio = Sio::new(pac.SIO);
 
-    maze.update_walls(0, 0, [true, false, true, true]);
-    maze.update_walls(1, 0, [true, false, false, false]);
-    maze.update_walls(2, 0, [true, true, true, false]);
-    maze.update_walls(1, 1, [false, false, false, false]);
+    // External high-speed crystal on the pico board is 12Mhz
+    let external_xtal_freq_hz = 12_000_000u32;
+    let clocks = init_clocks_and_plls(
+        external_xtal_freq_hz,
+        pac.XOSC,
+        pac.CLOCKS,
+        pac.PLL_SYS,
+        pac.PLL_USB,
+        &mut pac.RESETS,
+        &mut watchdog,
+    )
+    .ok()
+    .unwrap();
 
-    path.append(Veci::new());
+    let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
+
+    let pins = bsp::Pins::new(
+        pac.IO_BANK0,
+        pac.PADS_BANK0,
+        sio.gpio_bank0,
+        &mut pac.RESETS,
+    );
+
+    // This is the correct pin on the Raspberry Pico board. On other boards, even if they have an
+    // on-board LED, it might need to be changed.
+    //
+    // Notably, on the Pico W, the LED is not connected to any of the RP2040 GPIOs but to the cyw43 module instead.
+    // One way to do that is by using [embassy](https://github.com/embassy-rs/embassy/blob/main/examples/rp/src/bin/wifi_blinky.rs)
+    //
+    // If you have a Pico W and want to toggle a LED with a simple GPIO output pin, you can connect an external
+    // LED to one of the GPIO pins, and reference that pin here. Don't forget adding an appropriate resistor
+    // in series with the LED.
+    let mut led_pin = pins.led.into_push_pull_output();
 
     loop {
-        let result = pathfinder::next(&maze, &path);
-
-        if result.is_found() {
-            let next = result.unwrap();
-            path.append(next.pos());
-
-            if next.distance == 0 {
-                break;
-            }
-            continue;
-        }
-
-        let mut to_unvisited = next_unvisited(&maze, &path);
-        to_unvisited.remove(0); // remove head
-        path.append_all(to_unvisited);
+        info!("on!");
+        led_pin.set_high().unwrap();
+        delay.delay_ms(500);
+        info!("off!");
+        led_pin.set_low().unwrap();
+        delay.delay_ms(500);
     }
-
-    path.optimize();
-
-    println!("{:?}", maze);
-    println!("{:?}", path);
 }
+
+// End of file

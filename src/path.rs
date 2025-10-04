@@ -1,19 +1,19 @@
+use defmt_test::tests;
+use heapless::Vec;
 use crate::MAZE_SIZE;
 use crate::vec::Veci;
-use std::collections::HashMap;
-use std::fmt;
 
 /// Represents a path that may be taken
 pub struct Path {
     /// The taken segments
-    segments: Vec<Veci>,
+    segments: Vec<Veci, MAZE_SIZE>,
 }
 
 impl Path {
     /// Returns a new path instance
     pub fn new() -> Self {
         Path {
-            segments: Vec::with_capacity(MAZE_SIZE),
+            segments: Vec::new(),
         }
     }
 
@@ -45,7 +45,7 @@ impl Path {
     ///
     /// - `segment` - The `Segment` to append to the path.
     pub fn append(&mut self, segment: Veci) {
-        self.segments.push(segment);
+        self.segments.push(segment).unwrap();
     }
 
     /// Appends segments to the path.
@@ -53,9 +53,9 @@ impl Path {
     /// ### Arguments
     ///
     /// - `segments` - The `Segment`s to append to the path.
-    pub fn append_all(&mut self, segments: Vec<Veci>) {
+    pub fn append_all(&mut self, segments: Vec<Veci, MAZE_SIZE>) {
         for segment in segments.into_iter() {
-            self.segments.push(segment)
+            self.segments.push(segment).unwrap();
         }
     }
 
@@ -79,13 +79,13 @@ impl Path {
     pub fn optimize(&mut self) {
         // the first found position of every veci
         let mut occurrences = HashMap::new();
-        let mut optimized = Vec::with_capacity(self.size());
+        let mut optimized: Vec<Veci, MAZE_SIZE> = Vec::new();
 
         for (i, pos) in self.segments.iter().enumerate() {
             let existing = occurrences.insert(*pos, i);
 
             if existing.is_none() {
-                optimized.push(*pos);
+                optimized.push(*pos).unwrap();
                 continue;
             }
 
@@ -93,27 +93,14 @@ impl Path {
             for _ in (existing..i).rev() {
                 optimized.pop();
             }
-            optimized.push(*pos);
+            optimized.push(*pos).unwrap();
         }
 
         self.segments = optimized;
     }
 }
 
-impl fmt::Debug for Path {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, segment) in self.segments.iter().enumerate() {
-            if i == self.size() - 1 {
-                write!(f, "{:?}", *segment)?;
-            } else {
-                write!(f, "{:?} -> ", *segment)?;
-            }
-        }
-        Ok(())
-    }
-}
-
-#[cfg(test)]
+#[tests]
 mod tests {
     use crate::maze::Segment;
     use crate::path::Path;

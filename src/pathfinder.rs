@@ -1,8 +1,9 @@
-use std::collections::{HashMap, VecDeque};
 use crate::maze::{Maze, Relative, Segment};
-use crate::MAZE_SIZE;
 use crate::path::Path;
 use crate::vec::Veci;
+use crate::MAZE_SIZE;
+use defmt_test::tests;
+use heapless::{Deque, Vec};
 
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
@@ -108,8 +109,8 @@ struct ExploredNode {
 ///
 /// A [Vec] with all segment locations that should be followed to the nearest unvisited
 /// segment.
-pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
-    let mut to_explore: VecDeque<Veci> = VecDeque::with_capacity(MAZE_SIZE);
+pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
+    let mut to_explore: Deque<Veci, MAZE_SIZE> = Deque::new();
     // contains the vecs that have been explored, with the value being the parent vec.
     // for the root, value is `None`.
     let mut explored: HashMap<Veci, ExploredNode> = HashMap::with_capacity(MAZE_SIZE);
@@ -117,7 +118,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
     {
         let root = path.head().unwrap_or_else(|| Veci::new());
         explored.insert(root, ExploredNode { parent: None, distance: 0 });
-        to_explore.push_back(root);
+        to_explore.push_back(root).unwrap();
     }
 
     while !to_explore.is_empty() {
@@ -126,12 +127,12 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
 
         // found target
         if !path.contains(current_pos) {
-            let mut to_root = Vec::with_capacity(explored.len());
+            let mut to_root: Vec<Veci, MAZE_SIZE> = Vec::new();
 
             let mut parent = Some(current_pos);
             while parent != None {
                 let value = parent.unwrap();
-                to_root.push(value);
+                to_root.push(value).unwrap();
                 parent = explored[&value].parent;
             }
 
@@ -158,49 +159,51 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
             }
 
             explored.insert(segment.pos(), ExploredNode { parent: Some(current_pos), distance: parent_distance + 1 });
-            to_explore.push_back(segment.pos());
+            to_explore.push_back(segment.pos()).unwrap();
         }
     }
 
     panic!("Failed to find unvisited node in entire maze")
 }
 
-#[cfg(test)]
+/// Finds any segment that has a distance of zero.
+/// Updates `path` on the way.
+///
+/// ### Arguments
+///
+/// - `maze` - The maze.
+/// - `path` - The path that has been taken so far. Is updated by this method.
+fn find(maze: &mut Maze, path: &mut Path)  {
+    let mut maze = Maze::new();
+    let mut path = Path::new();
+
+    path.append(Veci::new());
+
+    loop {
+        let result = next(&maze, &path);
+
+        if result.is_found() {
+            let next = result.unwrap();
+            path.append(next.pos());
+
+            if next.distance == 0 {
+                break;
+            }
+            continue;
+        }
+
+        let mut segments = next_unvisited(&maze, &path);
+        segments.remove(0);
+        path.append_all(segments);
+    }
+}
+
+#[tests]
 mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
-    use crate::pathfinder;
-    use crate::pathfinder::next_unvisited;
+    use crate::pathfinder::find;
     use crate::vec::Veci;
-
-    /// Finds any segment that has a distance of zero.
-    /// Updates `path` on the way.
-    ///
-    /// ### Arguments
-    ///
-    /// - `maze` - The maze.
-    /// - `path` - The path that has been taken so far. Is updated by this method.
-    fn find(maze: &mut Maze, path: &mut Path)  {
-        path.append(Veci::new());
-
-        loop {
-            let result = pathfinder::next(&maze, &path);
-
-            if result.is_found() {
-                let next = result.unwrap();
-                path.append(next.pos());
-
-                if next.distance == 0 {
-                    break;
-                }
-                continue;
-            }
-
-            let mut segments = next_unvisited(&maze, &path);
-            segments.remove(0);
-            path.append_all(segments);
-        }
-    }
 
     #[test]
     fn next() {

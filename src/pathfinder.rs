@@ -112,17 +112,19 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
     let mut to_explore: VecDeque<Veci> = VecDeque::with_capacity(MAZE_SIZE);
     // contains the vecs that have been explored, with the value being the parent vec.
     // for the root, value is `None`.
-    let mut explored: HashMap<Veci, Option<Veci>> = HashMap::with_capacity(MAZE_SIZE);
+    let mut explored: HashMap<Veci, ExploredNode> = HashMap::with_capacity(MAZE_SIZE);
 
     {
         let root = path.head().unwrap_or_else(|| Veci::new());
-        explored.insert(root, None);
+        explored.insert(root, ExploredNode { parent: None, distance: 0 });
         to_explore.push_back(root);
     }
 
     while !to_explore.is_empty() {
         let current_pos = to_explore.pop_front().expect("Failed to find unvisited node in entire maze");
+        let current_segment = maze.segment_vec(current_pos);
 
+        // found target
         if !path.contains(current_pos) {
             let mut to_root = Vec::with_capacity(explored.len());
 
@@ -130,14 +132,16 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
             while parent != None {
                 let value = parent.unwrap();
                 to_root.push(value);
-                parent = explored[&value];
+                parent = explored[&value].parent;
             }
 
-            to_root.reverse();
+            // todo update distances
+
+            to_root.reverse(); // path is constructed the wrong way around
             return to_root;
         }
 
-        let current_segment = maze.segment_vec(current_pos);
+        let parent_distance = explored.get(&current_pos).unwrap().distance;
         'dirs: for (i, dir) in Relative::iter().enumerate() {
             if current_segment.walls[i] {
                 continue 'dirs;
@@ -153,7 +157,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci> {
                 continue;
             }
 
-            explored.insert(segment.pos(), Some(current_pos));
+            explored.insert(segment.pos(), ExploredNode { parent: Some(current_pos), distance: parent_distance + 1 });
             to_explore.push_back(segment.pos());
         }
     }

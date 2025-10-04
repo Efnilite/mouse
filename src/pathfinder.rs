@@ -1,24 +1,21 @@
+use crate::map::Map;
 use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
 use crate::vec::Veci;
 use crate::MAZE_SIZE;
-use defmt_test::tests;
 use heapless::{Deque, Vec};
 
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
-
     /// Indicates that a suboptimal path has been found and that
     /// the mouse cannot follow strictly decreasing segments.
     Stuck,
 
     /// Indicates that a valid next segment has been found.
-    Found(Segment)
-
+    Found(Segment),
 }
 
 impl Result {
-
     /// Whether this result is a dead end or not.
     pub fn is_dead_end(&self) -> bool {
         matches!(*self, Result::Stuck)
@@ -36,7 +33,6 @@ impl Result {
             Result::Stuck => panic!("Called `Result::unwrap()` on no value"),
         }
     }
-
 }
 
 /// Attempts to find the next segment based on `maze` and the taken `path`.
@@ -89,6 +85,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     }
 }
 
+#[derive(Debug)]
 struct ExploredNode {
     /// The parent of the explored node, null if it is the root.
     parent: Option<Veci>,
@@ -113,16 +110,24 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
     let mut to_explore: Deque<Veci, MAZE_SIZE> = Deque::new();
     // contains the vecs that have been explored, with the value being the parent vec.
     // for the root, value is `None`.
-    let mut explored: HashMap<Veci, ExploredNode> = HashMap::with_capacity(MAZE_SIZE);
+    let mut explored: Map<ExploredNode> = Map::new();
 
     {
         let root = path.head().unwrap_or_else(|| Veci::new());
-        explored.insert(root, ExploredNode { parent: None, distance: 0 });
+        explored.insert(
+            root,
+            ExploredNode {
+                parent: None,
+                distance: 0,
+            },
+        );
         to_explore.push_back(root).unwrap();
     }
 
     while !to_explore.is_empty() {
-        let current_pos = to_explore.pop_front().expect("Failed to find unvisited node in entire maze");
+        let current_pos = to_explore
+            .pop_front()
+            .expect("Failed to find unvisited node in entire maze");
         let current_segment = maze.segment_vec(current_pos);
 
         // found target
@@ -133,7 +138,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
             while parent != None {
                 let value = parent.unwrap();
                 to_root.push(value).unwrap();
-                parent = explored[&value].parent;
+                parent = explored.get(&value).unwrap().parent;
             }
 
             // todo update distances
@@ -158,7 +163,13 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
                 continue;
             }
 
-            explored.insert(segment.pos(), ExploredNode { parent: Some(current_pos), distance: parent_distance + 1 });
+            explored.insert(
+                segment.pos(),
+                ExploredNode {
+                    parent: Some(current_pos),
+                    distance: parent_distance + 1,
+                },
+            );
             to_explore.push_back(segment.pos()).unwrap();
         }
     }
@@ -173,10 +184,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
 ///
 /// - `maze` - The maze.
 /// - `path` - The path that has been taken so far. Is updated by this method.
-fn find(maze: &mut Maze, path: &mut Path)  {
-    let mut maze = Maze::new();
-    let mut path = Path::new();
-
+fn find(maze: &Maze, path: &mut Path) {
     path.append(Veci::new());
 
     loop {
@@ -198,7 +206,7 @@ fn find(maze: &mut Maze, path: &mut Path)  {
     }
 }
 
-#[tests]
+#[cfg(test)]
 mod tests {
     use crate::maze::Maze;
     use crate::path::Path;

@@ -3,36 +3,22 @@
 //! This will blink an LED attached to GP25, which is the pin the Pico uses for the on-board LED.
 #![no_std]
 #![no_main]
-extern crate alloc;
-
-mod vec;
-mod path;
-mod maze;
-mod pathfinder;
-
-/// The maze width.
-const MAZE_WIDTH: u8 = 16;
-
-/// The maze height.
-const MAZE_HEIGHT: u8 = 16;
-
-/// The maze size.
-const MAZE_SIZE: usize = ((MAZE_WIDTH as u16) * (MAZE_HEIGHT as u16)) as usize;
 
 use bsp::entry;
-use defmt::*;
 use defmt_rtt as _;
 use embedded_hal::digital::OutputPin;
+#[cfg(not(test))]
 use panic_probe as _;
 use rp_pico as bsp;
-
 use bsp::hal::{
     clocks::{Clock, init_clocks_and_plls},
     pac,
     sio::Sio,
     watchdog::Watchdog,
 };
+use defmt::info;
 
+#[cfg(not(test))]
 #[entry]
 fn main() -> ! {
     info!("Program start");
@@ -84,5 +70,3 @@ fn main() -> ! {
         delay.delay_ms(500);
     }
 }
-
-// End of file

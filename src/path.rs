@@ -1,7 +1,7 @@
-use defmt_test::tests;
-use heapless::Vec;
-use crate::MAZE_SIZE;
 use crate::vec::Veci;
+use crate::MAZE_SIZE;
+use heapless::Vec;
+use crate::map::Map;
 
 /// Represents a path that may be taken
 pub struct Path {
@@ -78,7 +78,7 @@ impl Path {
     /// todo! avoid bulk optimization and optimize as soon as append_all/append is called
     pub fn optimize(&mut self) {
         // the first found position of every veci
-        let mut occurrences = HashMap::new();
+        let mut occurrences = Map::new();
         let mut optimized: Vec<Veci, MAZE_SIZE> = Vec::new();
 
         for (i, pos) in self.segments.iter().enumerate() {
@@ -90,7 +90,7 @@ impl Path {
             }
 
             let existing = existing.unwrap();
-            for _ in (existing..i).rev() {
+            for _ in (*existing..i).rev() {
                 optimized.pop();
             }
             optimized.push(*pos).unwrap();
@@ -100,7 +100,7 @@ impl Path {
     }
 }
 
-#[tests]
+#[cfg(test)]
 mod tests {
     use crate::maze::Segment;
     use crate::path::Path;

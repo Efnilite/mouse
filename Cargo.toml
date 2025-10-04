@@ -1,11 +1,8 @@
 [package]
 edition = "2021"
-name = "mouse-embedded"
+name = "mouse"
 version = "0.1.0"
 license = "MIT"
-
-[dev-dependencies]
-defmt-test = "0.4.0"
 
 [dependencies]
 cortex-m = "0.7"
@@ -14,7 +11,6 @@ embedded-hal = { version = "1.0.0" }
 
 defmt = "1"
 defmt-rtt = "1"
-defmt-test = "0.4.0"
 panic-probe = { version = "1", features = ["print-defmt"] }
 
 # We're using a Pico by default on this template

@@ -1,5 +1,5 @@
 use crate::vec::Veci;
-use crate::{MAZE_HEIGHT, MAZE_SIZE, MAZE_WIDTH};
+use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use core::slice::Iter;
 
 /// Represents the maze
@@ -17,8 +17,8 @@ impl Maze {
     pub fn new() -> Self {
         let mut points = [Segment::new(); MAZE_SIZE];
 
-        for x in 0..MAZE_WIDTH {
-            for y in 0..MAZE_HEIGHT {
+        for x in 0..MAZE_WIDTH_U8 {
+            for y in 0..MAZE_HEIGHT_U8 {
                 let distances = [
                     maze_calc_distance(x, y, 8, 8),
                     maze_calc_distance(x, y, 7, 8),
@@ -26,7 +26,7 @@ impl Maze {
                     maze_calc_distance(x, y, 7, 7),
                 ];
 
-                points[(x + y * MAZE_WIDTH) as usize] = Segment {
+                points[(x + y * MAZE_WIDTH_U8) as usize] = Segment {
                     pos: Veci { x, y },
                     distance: *distances.iter().min().unwrap(),
                     walls: [false, false, false, false],
@@ -39,7 +39,7 @@ impl Maze {
 
     /// Returns the segment at `x, y`.
     pub fn segment(&self, x: u8, y: u8) -> Segment {
-        self.segments[(x + y * MAZE_WIDTH) as usize]
+        self.segments[(x + y * MAZE_WIDTH_U8) as usize]
     }
 
     /// Returns the segment at `x, y`.
@@ -49,7 +49,7 @@ impl Maze {
 
     /// Updates the walls of the segment at `x, y` to the specified array.
     pub fn update_walls(&mut self, x: u8, y: u8, walls: [bool; 4]) {
-        let i = (x + y * MAZE_WIDTH) as usize;
+        let i = (x + y * MAZE_WIDTH_U8) as usize;
         let existing = self.segments[i];
 
         self.segments[i] = Segment {
@@ -61,7 +61,7 @@ impl Maze {
 
     /// Updates the distance of the segment at `x, y` to the specified value.
     pub fn update_distance(&mut self, x: u8, y: u8, distance: u8) {
-        let i = (x + y * MAZE_WIDTH) as usize;
+        let i = (x + y * MAZE_WIDTH_U8) as usize;
         let existing = self.segments[i];
 
         self.segments[i] = Segment {
@@ -133,9 +133,9 @@ impl Segment {
 
         match *relative {
             Relative::North if y > 0 => Some(maze.segment(x, y - 1)),
-            Relative::South if y + 1 < MAZE_HEIGHT => Some(maze.segment(x, y + 1)),
+            Relative::South if y + 1 < MAZE_HEIGHT_U8 => Some(maze.segment(x, y + 1)),
             Relative::West if x > 0 => Some(maze.segment(x - 1, y)),
-            Relative::East if x + 1 < MAZE_WIDTH => Some(maze.segment(x + 1, y)),
+            Relative::East if x + 1 < MAZE_WIDTH_U8 => Some(maze.segment(x + 1, y)),
             _ => None,
         }
     }

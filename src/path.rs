@@ -1,9 +1,10 @@
+use crate::map::Map;
 use crate::vec::Veci;
 use crate::MAZE_SIZE;
 use heapless::Vec;
-use crate::map::Map;
 
 /// Represents a path that may be taken
+#[derive(Debug)]
 pub struct Path {
     /// The taken segments
     segments: Vec<Veci, MAZE_SIZE>,
@@ -90,7 +91,7 @@ impl Path {
             }
 
             let existing = existing.unwrap();
-            for _ in (*existing..i).rev() {
+            for _ in (existing..i).rev() {
                 optimized.pop();
             }
             optimized.push(*pos).unwrap();

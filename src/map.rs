@@ -1,43 +1,29 @@
-use crate::{MAZE_HEIGHT_USIZE, MAZE_WIDTH_USIZE};
-use heapless::Vec;
 use crate::vec::Veci;
+use crate::MAZE_SIZE;
+use std::collections::HashMap;
 
+/// Represents a custom Map implementation where the key is a [Veci].
 pub struct Map<V> {
-    elements: Vec<Vec<V, MAZE_HEIGHT_USIZE>, MAZE_WIDTH_USIZE>,
+    elements: HashMap<Veci, V>,
 }
 
 impl<V: core::fmt::Debug> Map<V> {
     pub fn new() -> Self {
         Map {
-            elements: Vec::new(),
+            elements: HashMap::with_capacity(MAZE_SIZE),
         }
     }
 
     pub fn get(&self, vec: &Veci) -> Option<&V> {
-        self.elements.get(vec.x as usize)?.get(vec.y as usize)
+        self.elements.get(vec)
     }
 
-    pub fn insert(&mut self, vec: Veci, value: V) -> Option<&V> {
-        // Ensure the outer Vec has enough capacity
-        while self.elements.len() <= vec.x as usize {
-            self.elements.push(Vec::new()).ok()?;
-        }
-
-        let ys = self.elements.get_mut(vec.x as usize).unwrap();
-
-        if (vec.y as usize) < ys.len() {
-            ys[vec.y as usize] = value;
-            Some(&ys[vec.y as usize])
-        } else {
-            None
-        }
+    pub fn insert(&mut self, vec: Veci, value: V) -> Option<V> {
+        self.elements.insert(vec, value)
     }
 
     pub fn contains_key(&self, vec: &Veci) -> bool {
-        self.elements
-            .get(vec.x as usize)
-            .and_then(|ys| ys.get(vec.y as usize))
-            .is_some()
+        self.elements.contains_key(vec)
     }
 }
 

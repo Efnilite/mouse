@@ -1,6 +1,3 @@
-#![no_std]
-#![no_main]
-
 /// The maze width.
 pub const MAZE_WIDTH_U8: u8 = 16;
 pub const MAZE_WIDTH_USIZE: usize = 16;
@@ -16,4 +13,4 @@ pub mod vec;
 pub mod path;
 pub mod maze;
 pub mod pathfinder;
-pub mod map;
+mod map;

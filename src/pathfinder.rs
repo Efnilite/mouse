@@ -16,6 +16,7 @@ pub enum Result {
 }
 
 impl Result {
+
     /// Whether this result is a dead end or not.
     pub fn is_dead_end(&self) -> bool {
         matches!(*self, Result::Stuck)
@@ -160,7 +161,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
 
             let segment = relative.unwrap();
             if explored.contains_key(&segment.pos()) {
-                continue;
+                continue 'dirs;
             }
 
             explored.insert(
@@ -177,41 +178,41 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
     panic!("Failed to find unvisited node in entire maze")
 }
 
-/// Finds any segment that has a distance of zero.
-/// Updates `path` on the way.
-///
-/// ### Arguments
-///
-/// - `maze` - The maze.
-/// - `path` - The path that has been taken so far. Is updated by this method.
-fn find(maze: &Maze, path: &mut Path) {
-    path.append(Vecu::new());
-
-    loop {
-        let result = next(&maze, &path);
-
-        if result.is_found() {
-            let next = result.unwrap();
-            path.append(next.pos());
-
-            if next.distance == 0 {
-                break;
-            }
-            continue;
-        }
-
-        let mut segments = next_unvisited(&maze, &path);
-        segments.remove(0);
-        path.append_all(segments);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
-    use crate::pathfinder::find;
+    use crate::pathfinder::{next_unvisited};
     use crate::vec::Vecu;
+
+    /// Finds any segment that has a distance of zero.
+    /// Updates `path` on the way.
+    ///
+    /// ### Arguments
+    ///
+    /// - `maze` - The maze.
+    /// - `path` - The path that has been taken so far. Is updated by this method.
+    fn find(maze: &Maze, path: &mut Path) {
+        path.append(Vecu::new());
+
+        loop {
+            let result = crate::pathfinder::next(&maze, &path);
+
+            if result.is_found() {
+                let next = result.unwrap();
+                path.append(next.pos());
+
+                if next.distance == 0 {
+                    break;
+                }
+                continue;
+            }
+
+            let mut segments = next_unvisited(&maze, &path);
+            segments.remove(0);
+            path.append_all(segments);
+        }
+    }
 
     #[test]
     fn next() {

@@ -1,6 +1,6 @@
 use crate::map::Map;
 use crate::vec::Vecu;
-use crate::{MAZE_BLOCK_M, MAZE_HEIGHT_U8, MAZE_HEIGHT_USIZE, MAZE_SIZE, MAZE_WIDTH_U8};
+use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use heapless::Vec;
 
 pub const ACCELERATION_MS2: f64 = 2.;
@@ -43,7 +43,7 @@ impl Path {
 
         let mut time = 0.;
 
-        for (i, x) in self.segments.iter().enumerate() {
+        for (i, _x) in self.segments.iter().enumerate() {
             if i > 0 && i < self.segments.len() - 1 {
                 if self.is_turn(i) {
                     time += 0.5;

@@ -4,7 +4,6 @@ use crate::MAZE_SIZE;
 use heapless::Vec;
 
 /// Represents a path that may be taken
-#[derive(Debug)]
 pub struct Path {
     /// The taken segments
     segments: Vec<Veci, MAZE_SIZE>,
@@ -99,6 +98,21 @@ impl Path {
 
         self.segments = optimized;
     }
+}
+
+impl core::fmt::Debug for Path {
+
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        for (i, x) in self.segments.iter().enumerate() {
+            if i == self.segments.len() - 1 {
+                write!(f, "{:?}", x)?;
+            } else {
+                write!(f, "{:?} -> ", x)?;
+            }
+        }
+        Ok(())
+    }
+
 }
 
 #[cfg(test)]

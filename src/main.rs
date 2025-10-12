@@ -1,9 +1,12 @@
 use mouse::maze::Maze;
 use mouse::path::Path;
 use mouse::pathfinder::{next, next_unvisited};
-use mouse::vec::Veci;
+use mouse::vec::{Vecf, Veci};
 
 fn main() {
+    let mut pos = Vecf::new();
+    let mut heading = Vecf::new();
+
     let maze = Maze::new();
     let mut path = Path::new();
 

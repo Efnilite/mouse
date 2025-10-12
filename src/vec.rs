@@ -1,5 +1,5 @@
 /// 2d vector with ints
-#[derive(PartialEq, Copy, Clone, Eq, Hash, Debug)]
+#[derive(PartialEq, Copy, Clone, Eq, Hash)]
 pub struct Veci {
     pub x: u8,
     pub y: u8,
@@ -12,16 +12,34 @@ impl Veci {
     }
 }
 
+impl core::fmt::Debug for Veci {
+
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "({:?}, {:?})", self.x, self.y)?;
+        Ok(())
+    }
+
+}
+
 /// 2d vector with floats
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone)]
 pub struct Vecf {
-    pub x: f32,
-    pub y: f32,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Vecf {
     /// Returns a new [Vecf] as zero-vector.
     pub fn new() -> Self {
-        Vecf { x: 0f32, y: 0f32 }
+        Vecf { x: 0f64, y: 0f64 }
     }
+}
+
+impl core::fmt::Debug for Vecf {
+
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "({:?}, {:?})", self.x, self.y)?;
+        Ok(())
+    }
+
 }

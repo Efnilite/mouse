@@ -39,5 +39,4 @@ mod tests {
         assert_eq!(None, map.get(&Vecu { x: 0, y: 0 }));
         assert_eq!(None, map.insert(Vecu { x: 0, y: 0 }, 1));
     }
-
 }

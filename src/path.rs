@@ -10,7 +10,7 @@ pub const MAX_SPEED_MS: f64 = 5.;
 pub struct Path {
     /// The taken segments
     segments: Vec<Vecu, MAZE_SIZE>,
-    optimized: bool
+    optimized: bool,
 }
 
 impl Path {
@@ -36,7 +36,10 @@ impl Path {
     /// Returns the current estimated amount of time to complete this path.
     /// Returns undefined results on unoptimized paths.
     pub fn time_to_complete(&self) -> f64 {
-        assert!(self.optimized, "cannot calculate time to complete on an unoptimized path");
+        assert!(
+            self.optimized,
+            "cannot calculate time to complete on an unoptimized path"
+        );
 
         let mut time = 0.;
 
@@ -137,10 +140,17 @@ impl Path {
 }
 
 impl core::fmt::Debug for Path {
-
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Path | Length {:?} | Time to complete {:?} sec\n",
-               self.segments.len(), self.time_to_complete())?;
+        write!(
+            f,
+            "Path | Length {:?} | Time to complete {:?} sec\n",
+            self.segments.len(),
+            if self.optimized {
+                self.time_to_complete()
+            } else {
+                0.
+            }
+        )?;
 
         for y in 0..MAZE_HEIGHT_U8 {
             for x in 0..MAZE_WIDTH_U8 {
@@ -155,7 +165,6 @@ impl core::fmt::Debug for Path {
         write!(f, "\n")?;
         Ok(())
     }
-
 }
 
 #[cfg(test)]
@@ -180,13 +189,13 @@ mod tests {
     fn optimize() {
         let mut path = Path::new();
 
-        path.append(Vecu { x: 0, y: 0});
-        path.append(Vecu { x: 1, y: 0});
-        path.append(Vecu { x: 0, y: 1});
-        path.append(Vecu { x: 1, y: 0});
-        path.append(Vecu { x: 3, y: 1});
-        path.append(Vecu { x: 1, y: 0});
-        path.append(Vecu { x: 2, y: 0});
+        path.append(Vecu { x: 0, y: 0 });
+        path.append(Vecu { x: 1, y: 0 });
+        path.append(Vecu { x: 0, y: 1 });
+        path.append(Vecu { x: 1, y: 0 });
+        path.append(Vecu { x: 3, y: 1 });
+        path.append(Vecu { x: 1, y: 0 });
+        path.append(Vecu { x: 2, y: 0 });
 
         path.optimize();
 
@@ -200,25 +209,25 @@ mod tests {
     fn turns() {
         let mut one = Path::new();
 
-        one.append(Vecu { x: 0, y: 0});
-        one.append(Vecu { x: 1, y: 0});
-        one.append(Vecu { x: 2, y: 0});
-        one.append(Vecu { x: 3, y: 0});
-        one.append(Vecu { x: 3, y: 1});
-        one.append(Vecu { x: 3, y: 2});
-        one.append(Vecu { x: 3, y: 3});
+        one.append(Vecu { x: 0, y: 0 });
+        one.append(Vecu { x: 1, y: 0 });
+        one.append(Vecu { x: 2, y: 0 });
+        one.append(Vecu { x: 3, y: 0 });
+        one.append(Vecu { x: 3, y: 1 });
+        one.append(Vecu { x: 3, y: 2 });
+        one.append(Vecu { x: 3, y: 3 });
 
         let mut two = Path::new();
 
-        two.append(Vecu { x: 0, y: 0});
-        two.append(Vecu { x: 1, y: 0});
-        two.append(Vecu { x: 2, y: 0});
-        two.append(Vecu { x: 3, y: 0});
-        two.append(Vecu { x: 4, y: 0});
-        two.append(Vecu { x: 4, y: 1});
-        two.append(Vecu { x: 4, y: 2});
-        two.append(Vecu { x: 4, y: 3});
-        two.append(Vecu { x: 3, y: 3});
+        two.append(Vecu { x: 0, y: 0 });
+        two.append(Vecu { x: 1, y: 0 });
+        two.append(Vecu { x: 2, y: 0 });
+        two.append(Vecu { x: 3, y: 0 });
+        two.append(Vecu { x: 4, y: 0 });
+        two.append(Vecu { x: 4, y: 1 });
+        two.append(Vecu { x: 4, y: 2 });
+        two.append(Vecu { x: 4, y: 3 });
+        two.append(Vecu { x: 3, y: 3 });
 
         one.optimize();
         two.optimize();
@@ -230,29 +239,29 @@ mod tests {
     fn turns_equal_len() {
         let mut one = Path::new();
 
-        one.append(Vecu { x: 0, y: 0});
-        one.append(Vecu { x: 1, y: 0});
-        one.append(Vecu { x: 2, y: 0});
-        one.append(Vecu { x: 3, y: 0});
-        one.append(Vecu { x: 3, y: 1});
-        one.append(Vecu { x: 3, y: 2});
-        one.append(Vecu { x: 3, y: 3});
-        one.append(Vecu { x: 2, y: 3});
-        one.append(Vecu { x: 1, y: 3});
-        one.append(Vecu { x: 0, y: 3});
+        one.append(Vecu { x: 0, y: 0 });
+        one.append(Vecu { x: 1, y: 0 });
+        one.append(Vecu { x: 2, y: 0 });
+        one.append(Vecu { x: 3, y: 0 });
+        one.append(Vecu { x: 3, y: 1 });
+        one.append(Vecu { x: 3, y: 2 });
+        one.append(Vecu { x: 3, y: 3 });
+        one.append(Vecu { x: 2, y: 3 });
+        one.append(Vecu { x: 1, y: 3 });
+        one.append(Vecu { x: 0, y: 3 });
 
         let mut two = Path::new();
 
-        two.append(Vecu { x: 0, y: 0});
-        two.append(Vecu { x: 0, y: 1});
-        two.append(Vecu { x: 1, y: 1});
-        two.append(Vecu { x: 2, y: 1});
-        two.append(Vecu { x: 3, y: 1});
-        two.append(Vecu { x: 3, y: 2});
-        two.append(Vecu { x: 3, y: 3});
-        two.append(Vecu { x: 2, y: 3});
-        two.append(Vecu { x: 1, y: 3});
-        two.append(Vecu { x: 0, y: 3});
+        two.append(Vecu { x: 0, y: 0 });
+        two.append(Vecu { x: 0, y: 1 });
+        two.append(Vecu { x: 1, y: 1 });
+        two.append(Vecu { x: 2, y: 1 });
+        two.append(Vecu { x: 3, y: 1 });
+        two.append(Vecu { x: 3, y: 2 });
+        two.append(Vecu { x: 3, y: 3 });
+        two.append(Vecu { x: 2, y: 3 });
+        two.append(Vecu { x: 1, y: 3 });
+        two.append(Vecu { x: 0, y: 3 });
 
         one.optimize();
         two.optimize();

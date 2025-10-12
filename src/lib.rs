@@ -9,6 +9,9 @@ pub const MAZE_HEIGHT_USIZE: usize = 16;
 /// The maze size.
 pub const MAZE_SIZE: usize = MAZE_WIDTH_USIZE * MAZE_HEIGHT_USIZE;
 
+/// The size of a block of a maze.
+pub const MAZE_BLOCK_M: f64 = 0.18;
+
 pub mod vec;
 pub mod path;
 pub mod maze;

@@ -1,4 +1,4 @@
-use crate::vec::Veci;
+use crate::vec::Vecu;
 use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use core::slice::Iter;
 
@@ -27,7 +27,7 @@ impl Maze {
                 ];
 
                 points[(x + y * MAZE_WIDTH_U8) as usize] = Segment {
-                    pos: Veci { x, y },
+                    pos: Vecu { x, y },
                     distance: *distances.iter().min().unwrap(),
                     walls: [false, false, false, false],
                 };
@@ -43,7 +43,7 @@ impl Maze {
     }
 
     /// Returns the segment at `x, y`.
-    pub fn segment_vec(&self, pos: Veci) -> Segment {
+    pub fn segment_vec(&self, pos: Vecu) -> Segment {
         self.segment(pos.x, pos.y)
     }
 
@@ -75,7 +75,7 @@ impl Maze {
 /// Represents a point on the grid.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Segment {
-    pos: Veci,
+    pos: Vecu,
     pub distance: u8,
     pub walls: [bool; 4],
 }
@@ -105,7 +105,7 @@ impl Segment {
     /// Creates a new default Segment.
     pub fn new() -> Self {
         Segment {
-            pos: Veci::new(),
+            pos: Vecu::new(),
             distance: u8::MAX,
             walls: [false, false, false, false],
         }
@@ -117,8 +117,12 @@ impl Segment {
         self.walls.iter().filter(|it| **it == true).count() == 3
     }
 
+    pub fn has_choice(&self) -> bool {
+        self.walls.iter().filter(|it| **it == true).count() < 3
+    }
+
     /// Returns the position of this segment.
-    pub fn pos(&self) -> Veci {
+    pub fn pos(&self) -> Vecu {
         self.pos
     }
 

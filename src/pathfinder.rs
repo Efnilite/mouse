@@ -1,7 +1,7 @@
 use crate::map::Map;
 use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
-use crate::vec::Veci;
+use crate::vec::Vecu;
 use crate::MAZE_SIZE;
 use heapless::{Deque, Vec};
 
@@ -48,7 +48,7 @@ impl Result {
 /// - [Result::Found] - A valid next segment has been found.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
-    let mut min_segment = maze.segment_vec(path.head().unwrap_or_else(|| Veci::new()));
+    let mut min_segment = maze.segment_vec(path.head().unwrap_or_else(|| Vecu::new()));
     // the biggest distance
     let max_distance = min_segment.distance;
 
@@ -88,7 +88,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 #[derive(Debug)]
 struct ExploredNode {
     /// The parent of the explored node, null if it is the root.
-    parent: Option<Veci>,
+    parent: Option<Vecu>,
     /// The distance to the root node.
     distance: u8,
 }
@@ -106,14 +106,14 @@ struct ExploredNode {
 ///
 /// A [Vec] with all segment locations that should be followed to the nearest unvisited
 /// segment.
-pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
-    let mut to_explore: Deque<Veci, MAZE_SIZE> = Deque::new();
+pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
+    let mut to_explore: Deque<Vecu, MAZE_SIZE> = Deque::new();
     // contains the vecs that have been explored, with the value being the parent vec.
     // for the root, value is `None`.
     let mut explored: Map<ExploredNode> = Map::new();
 
     {
-        let root = path.head().unwrap_or_else(|| Veci::new());
+        let root = path.head().unwrap_or_else(|| Vecu::new());
         explored.insert(
             root,
             ExploredNode {
@@ -132,7 +132,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
 
         // found target
         if !path.contains(current_pos) {
-            let mut to_root: Vec<Veci, MAZE_SIZE> = Vec::new();
+            let mut to_root: Vec<Vecu, MAZE_SIZE> = Vec::new();
 
             let mut parent = Some(current_pos);
             while parent != None {
@@ -185,7 +185,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Veci, MAZE_SIZE> {
 /// - `maze` - The maze.
 /// - `path` - The path that has been taken so far. Is updated by this method.
 fn find(maze: &Maze, path: &mut Path) {
-    path.append(Veci::new());
+    path.append(Vecu::new());
 
     loop {
         let result = next(&maze, &path);
@@ -211,7 +211,7 @@ mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
     use crate::pathfinder::find;
-    use crate::vec::Veci;
+    use crate::vec::Vecu;
 
     #[test]
     fn next() {
@@ -221,21 +221,21 @@ mod tests {
         find(&mut maze, &mut path);
 
         assert_eq!(15, path.size());
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).unwrap());
-        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3).unwrap());
-        assert_eq!(Veci { x: 4, y: 0 }, path.segment(4).unwrap());
-        assert_eq!(Veci { x: 5, y: 0 }, path.segment(5).unwrap());
-        assert_eq!(Veci { x: 6, y: 0 }, path.segment(6).unwrap());
-        assert_eq!(Veci { x: 7, y: 0 }, path.segment(7).unwrap());
-        assert_eq!(Veci { x: 7, y: 1 }, path.segment(8).unwrap());
-        assert_eq!(Veci { x: 7, y: 2 }, path.segment(9).unwrap());
-        assert_eq!(Veci { x: 7, y: 3 }, path.segment(10).unwrap());
-        assert_eq!(Veci { x: 7, y: 4 }, path.segment(11).unwrap());
-        assert_eq!(Veci { x: 7, y: 5 }, path.segment(12).unwrap());
-        assert_eq!(Veci { x: 7, y: 6 }, path.segment(13).unwrap());
-        assert_eq!(Veci { x: 7, y: 7 }, path.segment(14).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Vecu { x: 3, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Vecu { x: 4, y: 0 }, path.segment(4).unwrap());
+        assert_eq!(Vecu { x: 5, y: 0 }, path.segment(5).unwrap());
+        assert_eq!(Vecu { x: 6, y: 0 }, path.segment(6).unwrap());
+        assert_eq!(Vecu { x: 7, y: 0 }, path.segment(7).unwrap());
+        assert_eq!(Vecu { x: 7, y: 1 }, path.segment(8).unwrap());
+        assert_eq!(Vecu { x: 7, y: 2 }, path.segment(9).unwrap());
+        assert_eq!(Vecu { x: 7, y: 3 }, path.segment(10).unwrap());
+        assert_eq!(Vecu { x: 7, y: 4 }, path.segment(11).unwrap());
+        assert_eq!(Vecu { x: 7, y: 5 }, path.segment(12).unwrap());
+        assert_eq!(Vecu { x: 7, y: 6 }, path.segment(13).unwrap());
+        assert_eq!(Vecu { x: 7, y: 7 }, path.segment(14).unwrap());
         assert!(path.segment(15).is_none());
     }
 
@@ -252,11 +252,11 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
-        assert_eq!(Veci { x: 0, y: 1 }, path.segment(1).unwrap());
-        assert_eq!(Veci { x: 0, y: 2 }, path.segment(2).unwrap());
-        assert_eq!(Veci { x: 1, y: 2 }, path.segment(3).unwrap());
-        assert_eq!(Veci { x: 2, y: 2 }, path.segment(4).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 0, y: 1 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 0, y: 2 }, path.segment(2).unwrap());
+        assert_eq!(Vecu { x: 1, y: 2 }, path.segment(3).unwrap());
+        assert_eq!(Vecu { x: 2, y: 2 }, path.segment(4).unwrap());
     }
 
     #[test]
@@ -277,12 +277,12 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
-        assert_eq!(Veci { x: 1, y: 1 }, path.segment(2).unwrap());
-        assert_eq!(Veci { x: 2, y: 1 }, path.segment(3).unwrap());
-        assert_eq!(Veci { x: 2, y: 2 }, path.segment(4).unwrap());
-        assert_eq!(Veci { x: 3, y: 2 }, path.segment(5).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 1, y: 1 }, path.segment(2).unwrap());
+        assert_eq!(Vecu { x: 2, y: 1 }, path.segment(3).unwrap());
+        assert_eq!(Vecu { x: 2, y: 2 }, path.segment(4).unwrap());
+        assert_eq!(Vecu { x: 3, y: 2 }, path.segment(5).unwrap());
     }
 
     #[test]
@@ -300,11 +300,11 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(3).unwrap());
-        assert_eq!(Veci { x: 1, y: 1 }, path.segment(4).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Vecu { x: 1, y: 1 }, path.segment(4).unwrap());
     }
 
     #[test]
@@ -329,15 +329,15 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(0).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(1).unwrap());
-        assert_eq!(Veci { x: 2, y: 0 }, path.segment(2).unwrap());
-        assert_eq!(Veci { x: 3, y: 0 }, path.segment(3).unwrap());
-        assert_eq!(Veci { x: 3, y: 1 }, path.segment(4).unwrap());
-        assert_eq!(Veci { x: 2, y: 1 }, path.segment(5).unwrap());
-        assert_eq!(Veci { x: 1, y: 1 }, path.segment(6).unwrap());
-        assert_eq!(Veci { x: 1, y: 0 }, path.segment(7).unwrap());
-        assert_eq!(Veci { x: 0, y: 0 }, path.segment(8).unwrap());
-        assert_eq!(Veci { x: 0, y: 1 }, path.segment(9).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Vecu { x: 3, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Vecu { x: 3, y: 1 }, path.segment(4).unwrap());
+        assert_eq!(Vecu { x: 2, y: 1 }, path.segment(5).unwrap());
+        assert_eq!(Vecu { x: 1, y: 1 }, path.segment(6).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(7).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(8).unwrap());
+        assert_eq!(Vecu { x: 0, y: 1 }, path.segment(9).unwrap());
     }
 }

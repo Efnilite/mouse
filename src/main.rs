@@ -1,7 +1,7 @@
 use mouse::maze::Maze;
 use mouse::path::Path;
 use mouse::pathfinder::{next, next_unvisited};
-use mouse::vec::{Vecf, Veci};
+use mouse::vec::{Vecf, Vecu};
 
 fn main() {
     let mut pos = Vecf::new();
@@ -10,7 +10,7 @@ fn main() {
     let maze = Maze::new();
     let mut path = Path::new();
 
-    path.append(Veci::new());
+    path.append(Vecu::new());
 
     loop {
         let result = next(&maze, &path);
@@ -29,6 +29,9 @@ fn main() {
         segments.remove(0);
         path.append_all(segments);
     }
+
+    path.optimize();
+    path.time_to_complete();
 
     println!("{:?}", path);
 }

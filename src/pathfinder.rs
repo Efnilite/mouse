@@ -9,7 +9,7 @@ use heapless::{Deque, Vec};
 pub enum Result {
     /// Indicates that a segment has been found that is not a neighbour of the head of the path.
     /// Contains the new segment and the path from the head to the segment.
-    Stuck(Vec<Segment, MAZE_SIZE>),
+    Stuck(Vec<Vecu, MAZE_SIZE>),
 
     /// Indicates that a valid neighbour has been found as the next segment.
     Found(Segment),
@@ -25,6 +25,22 @@ impl Result {
     /// Whether this result contains a found [Segment] or not.
     pub fn is_found(&self) -> bool {
         matches!(*self, Result::Found(_))
+    }
+
+    /// Unwraps the found value.
+    pub fn unwrap_found(self) -> Segment {
+        match self {
+            Result::Found(s) => s,
+            _ => panic!("Called `Result::unwrap_found` on a non-Found value"),
+        }
+    }
+
+    /// Unwraps the stuck value.
+    pub fn unwrap_stuck(&self) -> &Vec<Vecu, MAZE_SIZE> {
+        match self {
+            Result::Stuck(s) => s,
+            _ => panic!("Called `Result::unwrap_stuck` on a non-Stuck value"),
+        }
     }
 
 }
@@ -43,6 +59,9 @@ impl Result {
 /// minimal segment. If `n` has a lower distance than the current minimal segment, `n` becomes the
 /// minimal segment.
 ///
+/// If the minimal segment is disconnected from the head, returns a path to the minimal segment.
+/// This is not guaranteed to be the shortest path.
+///
 /// ### Arguments
 ///
 /// - `maze` - The current maze.
@@ -52,15 +71,14 @@ impl Result {
 ///
 /// - [Result::Found] - A valid next segment has been found.
 /// - [Result::Stuck] - A valid next segment has been found, but it is not directly attached
-/// to the head of `path`.
+/// to the head of `path`. Returns the path to the valid next segment.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
     let mut min_segment = Segment::new();
     // the distance from min segment to the current segment in the loop
-    let mut min_segment_distance = 0u8;
-    let mut to_min: Vec<Segment, MAZE_SIZE> = Vec::new();
+    let mut min_segment_distance = 0usize;
 
-    for i in (0..path.size()).rev() {
+    for i in (0..path.len()).rev() {
         let current = maze.segment_vec(path.segment(i)
             .expect("Failed to find path segment"));
 
@@ -83,16 +101,18 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 
             if segment.distance < min_segment.distance {
                 min_segment = segment;
-                min_segment_distance = (path.size() - i) as u8;
+                min_segment_distance = path.len() - i;
             }
         }
     }
 
     if maze.segment_vec(path.head().unwrap()).distance <= min_segment.distance {
-        to_min.push(min_segment).unwrap();
-        let slice = &to_min[0..min_segment_distance as usize];
+        let mut to_min: Vec<Vecu, MAZE_SIZE> = Vec::new();
+        for i in (0..min_segment_distance).rev() {
+            to_min.push(path.segment(i).unwrap()).unwrap();
+        }
 
-        Result::Stuck(slice)
+        Result::Stuck(to_min)
     } else {
         Result::Found(min_segment)
     }
@@ -213,23 +233,23 @@ mod tests {
     fn find(maze: &Maze, path: &mut Path) {
         path.append(Vecu::new());
 
-        loop {
-            let result = crate::pathfinder::next(&maze, &path);
-
-            if result.is_found() {
-                let next = result.unwrap();
-                path.append(next.pos());
-
-                if next.distance == 0 {
-                    break;
-                }
-                continue;
-            }
-
-            let mut segments = next_unvisited(&maze, &path);
-            segments.remove(0);
-            path.append_all(segments);
-        }
+        // loop {
+        //     let result = crate::pathfinder::next(&maze, &path);
+        //
+        //     if result.is_found() {
+        //         let next = result.unwrap();
+        //         path.append(next.pos());
+        //
+        //         if next.distance == 0 {
+        //             break;
+        //         }
+        //         continue;
+        //     }
+        //
+        //     let mut segments = next_unvisited(&maze, &path);
+        //     segments.remove(0);
+        //     path.append_all(segments);
+        // }
     }
 
     #[test]
@@ -239,7 +259,7 @@ mod tests {
 
         find(&mut maze, &mut path);
 
-        assert_eq!(15, path.size());
+        assert_eq!(15, path.len());
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
         assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());

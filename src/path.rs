@@ -22,6 +22,7 @@ impl Path {
         }
     }
 
+    /// Whether the current value at a path is a turn or not.
     fn is_turn(&self, current: usize) -> bool {
         let prev = self.segments[current - 1];
         let next = self.segments[current + 1];
@@ -56,14 +57,14 @@ impl Path {
     }
 
     /// Returns the current size of this path.
-    pub fn size(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.segments.len()
     }
 
     /// Return the _n_-th segment that this path has taken.
     /// If the segment has not been visited yet, returns [Segment::new].
     pub fn segment(&self, index: usize) -> Option<Vecu> {
-        if index >= self.size() {
+        if index >= self.len() {
             return None;
         }
         Some(self.segments[index])
@@ -71,10 +72,10 @@ impl Path {
 
     /// Returns the current head of the path.
     pub fn head(&self) -> Option<Vecu> {
-        if self.size() == 0 {
+        if self.len() == 0 {
             return None;
         }
-        Some(self.segments[self.size() - 1])
+        Some(self.segments[self.len() - 1])
     }
 
     /// Appends a segment to the path.
@@ -103,7 +104,7 @@ impl Path {
     ///
     /// - `vec` - The vec to check for containment.
     pub fn contains(&self, vec: Vecu) -> bool {
-        for i in (0..self.size()).rev() {
+        for i in (0..self.len()).rev() {
             if self.segments[i] == vec {
                 return true;
             }
@@ -178,7 +179,7 @@ mod tests {
         let mut path = Path::new();
 
         path.append(Vecu::new());
-        assert_eq!(1, path.size());
+        assert_eq!(1, path.len());
         assert_eq!(
             Segment::new().pos(),
             path.segment(0).expect("Failed to find first path segment")
@@ -199,7 +200,7 @@ mod tests {
 
         path.optimize();
 
-        assert_eq!(3, path.size());
+        assert_eq!(3, path.len());
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
         assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());

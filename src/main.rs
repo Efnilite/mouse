@@ -1,7 +1,9 @@
 use mouse::maze::Maze;
 use mouse::path::Path;
-use mouse::pathfinder::{next, next_unvisited};
+use mouse::pathfinder::next;
 use mouse::vec::{Vecf, Vecu};
+use mouse::MAZE_SIZE;
+use heapless::{Vec};
 
 fn main() {
     let mut pos = Vecf::new();
@@ -20,7 +22,7 @@ fn main() {
         let result = next(&maze, &path);
 
         if result.is_found() {
-            let next = result.unwrap();
+            let next = result.unwrap_found();
             println!("{:?}", next);
             path.append(next.pos());
 
@@ -28,11 +30,11 @@ fn main() {
                 break;
             }
             continue;
+        } else {
+            let next: &Vec<Vecu, 256> = result.unwrap_stuck();
+            println!("{:?}", next);
+            path.append_all(&next);
         }
-
-        let mut segments = next_unvisited(&maze, &path);
-        segments.remove(0);
-        path.append_all(segments);
     }
 
     path.optimize();

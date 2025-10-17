@@ -7,11 +7,11 @@ use heapless::{Deque, Vec};
 
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
-    /// Indicates that a suboptimal path has been found and that
-    /// the mouse cannot follow strictly decreasing segments.
-    Stuck,
+    /// Indicates that a segment has been found that is not a neighbour of the head of the path.
+    /// Contains the new segment and the path from the head to the segment.
+    Stuck(Vec<Segment, MAZE_SIZE>),
 
-    /// Indicates that a valid next segment has been found.
+    /// Indicates that a valid neighbour has been found as the next segment.
     Found(Segment),
 }
 
@@ -19,7 +19,7 @@ impl Result {
 
     /// Whether this result is a dead end or not.
     pub fn is_dead_end(&self) -> bool {
-        matches!(*self, Result::Stuck)
+        matches!(*self, Result::Stuck(_))
     }
 
     /// Whether this result contains a found [Segment] or not.
@@ -27,16 +27,21 @@ impl Result {
         matches!(*self, Result::Found(_))
     }
 
-    /// Unwraps this result to retrieve a [Segment].
-    pub fn unwrap(self) -> Segment {
-        match self {
-            Result::Found(val) => val,
-            Result::Stuck => panic!("Called `Result::unwrap()` on no value"),
-        }
-    }
 }
 
 /// Attempts to find the next segment based on `maze` and the taken `path`.
+///
+/// ### Description
+///
+/// Returns the segment `n` with the smallest non-strict distance to the target
+/// that is reachable from and a neighbour of `p`. `p` is any value in `path`.
+///
+/// ### Implementation
+///
+/// For every element in path, starting from the beginning, all neighbours are checked.
+/// If a neighbour `n` is reachable and has not yet been visited, it is considered as a potential
+/// minimal segment. If `n` has a lower distance than the current minimal segment, `n` becomes the
+/// minimal segment.
 ///
 /// ### Arguments
 ///
@@ -45,16 +50,19 @@ impl Result {
 ///
 /// ### Returns
 ///
-/// - [Result::Stuck] - The path has reached a local minimum.
 /// - [Result::Found] - A valid next segment has been found.
+/// - [Result::Stuck] - A valid next segment has been found, but it is not directly attached
+/// to the head of `path`.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
-    let mut min_segment = maze.segment_vec(path.head().unwrap_or_else(|| Vecu::new()));
-    // the biggest distance
-    let max_distance = min_segment.distance;
+    let mut min_segment = Segment::new();
+    // the distance from min segment to the current segment in the loop
+    let mut min_segment_distance = 0u8;
+    let mut to_min: Vec<Segment, MAZE_SIZE> = Vec::new();
 
-    for i in 0..path.size() {
-        let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
+    for i in (0..path.size()).rev() {
+        let current = maze.segment_vec(path.segment(i)
+            .expect("Failed to find path segment"));
 
         'dirs: for (i, dir) in Relative::iter().enumerate() {
             if current.walls[i] {
@@ -75,12 +83,16 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 
             if segment.distance < min_segment.distance {
                 min_segment = segment;
+                min_segment_distance = (path.size() - i) as u8;
             }
         }
     }
 
-    if min_segment.distance == max_distance {
-        Result::Stuck
+    if maze.segment_vec(path.head().unwrap()).distance <= min_segment.distance {
+        to_min.push(min_segment).unwrap();
+        let slice = &to_min[0..min_segment_distance as usize];
+
+        Result::Stuck(slice)
     } else {
         Result::Found(min_segment)
     }
@@ -90,13 +102,15 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 struct ExploredNode {
     /// The parent of the explored node, null if it is the root.
     parent: Option<Vecu>,
-    /// The distance to the root node.
-    distance: u8,
 }
 
-/// Returns a path to the unvisited segment location relative to the head of `path`.
+/// Returns a path to the closest unvisited segment, relative to the head of `path`.
 /// The segments are ordered from the current head of `path` to the target segment.
 /// Includes the head of `path`.
+///
+/// ### Description
+///
+/// Finds the closest unvisited segment `t` to the current head of `path`.
 ///
 /// ### Arguments
 ///
@@ -119,7 +133,6 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
             root,
             ExploredNode {
                 parent: None,
-                distance: 0,
             },
         );
         to_explore.push_back(root).unwrap();
@@ -133,34 +146,36 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
 
         // found target
         if !path.contains(current_pos) {
-            let mut to_root: Vec<Vecu, MAZE_SIZE> = Vec::new();
+            let mut to_exit: Vec<Vecu, MAZE_SIZE> = Vec::new();
 
             let mut parent = Some(current_pos);
             while parent != None {
                 let value = parent.unwrap();
-                to_root.push(value).unwrap();
+                to_exit.push(value).unwrap();
                 parent = explored.get(&value).unwrap().parent;
             }
 
-            // todo update distances
+            // update distances by traversing the path and adding to distance
+            // as long as the path is decreasing in distance.
+            // do this for all possible exits of the path
 
-            to_root.reverse(); // path is constructed the wrong way around
-            return to_root;
+            to_exit.reverse(); // path is constructed the wrong way around
+            return to_exit;
         }
 
-        let parent_distance = explored.get(&current_pos).unwrap().distance;
+        // check all directions for unvisited segments
         'dirs: for (i, dir) in Relative::iter().enumerate() {
             if current_segment.walls[i] {
                 continue 'dirs;
             }
 
             let relative = current_segment.relative(maze, dir);
-            if relative.is_none() {
+            if relative.is_none() { // wall or OOB
                 continue 'dirs;
             }
 
             let segment = relative.unwrap();
-            if explored.contains_key(&segment.pos()) {
+            if explored.contains_key(&segment.pos()) { // already explored
                 continue 'dirs;
             }
 
@@ -168,7 +183,6 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
                 segment.pos(),
                 ExploredNode {
                     parent: Some(current_pos),
-                    distance: parent_distance + 1,
                 },
             );
             to_explore.push_back(segment.pos()).unwrap();
@@ -176,6 +190,10 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
     }
 
     panic!("Failed to find unvisited node in entire maze")
+}
+
+fn update_distances(maze: &Maze, path: &Path) {
+
 }
 
 #[cfg(test)]
@@ -287,7 +305,7 @@ mod tests {
     }
 
     #[test]
-    fn general_branch() {
+    fn general_deadend() {
         let mut maze = Maze::new();
         let mut path = Path::new();
 
@@ -306,10 +324,15 @@ mod tests {
         assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(3).unwrap());
         assert_eq!(Vecu { x: 1, y: 1 }, path.segment(4).unwrap());
+
+        assert_eq!(14, maze.segment(0, 0).distance);
+        assert_eq!(13, maze.segment(1, 0).distance);
+        assert_eq!(14, maze.segment(2, 0).distance);
+        assert_eq!(12, maze.segment(1, 1).distance);
     }
 
     #[test]
-    fn general_nontrivial_branch() {
+    fn general_nontrivial_deadend() {
         let mut maze = Maze::new();
         let mut path = Path::new();
 

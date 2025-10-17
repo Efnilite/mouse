@@ -117,8 +117,10 @@ impl Segment {
         self.walls.iter().filter(|it| **it == true).count() == 3
     }
 
-    pub fn has_choice(&self) -> bool {
-        self.walls.iter().filter(|it| **it == true).count() < 3
+    /// Whether this segment is straight.
+    /// A segment is straight when there are 2 walls and 1 exit and 1 entrance.
+    pub fn is_straight(&self) -> bool {
+        self.walls.iter().filter(|it| **it == true).count() == 2
     }
 
     /// Returns the position of this segment.

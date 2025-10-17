@@ -91,9 +91,9 @@ impl Path {
     /// ### Arguments
     ///
     /// - `segments` - The `Segment`s to append to the path.
-    pub fn append_all(&mut self, segments: Vec<Vecu, MAZE_SIZE>) {
+    pub fn append_all(&mut self, segments: &[Vecu]) {
         for segment in segments.into_iter() {
-            self.segments.push(segment).unwrap();
+            self.segments.push(*segment).unwrap();
         }
     }
 

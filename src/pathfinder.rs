@@ -16,7 +16,6 @@ pub enum Result {
 }
 
 impl Result {
-
     /// Whether this result is a dead end or not.
     pub fn is_dead_end(&self) -> bool {
         matches!(*self, Result::Stuck(_))
@@ -42,7 +41,6 @@ impl Result {
             _ => panic!("Called `Result::unwrap_stuck` on a non-Stuck value"),
         }
     }
-
 }
 
 /// Attempts to find the next segment based on `maze` and the taken `path`.
@@ -79,8 +77,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     let mut min_segment_distance = 0usize;
 
     for i in (0..path.len()).rev() {
-        let current = maze.segment_vec(path.segment(i)
-            .expect("Failed to find path segment"));
+        let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
 
         'dirs: for (i, dir) in Relative::iter().enumerate() {
             if current.walls[i] {
@@ -149,12 +146,7 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
 
     {
         let root = path.head().unwrap_or_else(|| Vecu::new());
-        explored.insert(
-            root,
-            ExploredNode {
-                parent: None,
-            },
-        );
+        explored.insert(root, ExploredNode { parent: None });
         to_explore.push_back(root).unwrap();
     }
 
@@ -190,12 +182,14 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
             }
 
             let relative = current_segment.relative(maze, dir);
-            if relative.is_none() { // wall or OOB
+            if relative.is_none() {
+                // wall or OOB
                 continue 'dirs;
             }
 
             let segment = relative.unwrap();
-            if explored.contains_key(&segment.pos()) { // already explored
+            if explored.contains_key(&segment.pos()) {
+                // already explored
                 continue 'dirs;
             }
 
@@ -212,15 +206,13 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
     panic!("Failed to find unvisited node in entire maze")
 }
 
-fn update_distances(maze: &Maze, path: &Path) {
-
-}
+fn update_distances(maze: &Maze, path: &Path) {}
 
 #[cfg(test)]
 mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
-    use crate::pathfinder::{next_unvisited};
+    use crate::pathfinder::next_unvisited;
     use crate::vec::Vecu;
 
     /// Finds any segment that has a distance of zero.

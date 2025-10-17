@@ -13,12 +13,10 @@ impl Vecu {
 }
 
 impl core::fmt::Debug for Vecu {
-
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "({:?}, {:?})", self.x, self.y)?;
         Ok(())
     }
-
 }
 
 /// 2d vector with u8s
@@ -36,12 +34,10 @@ impl Veci {
 }
 
 impl core::fmt::Debug for Veci {
-
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "({:?}, {:?})", self.x, self.y)?;
         Ok(())
     }
-
 }
 
 /// 2d vector with floats
@@ -59,10 +55,8 @@ impl Vecf {
 }
 
 impl core::fmt::Debug for Vecf {
-
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "({:?}, {:?})", self.x, self.y)?;
         Ok(())
     }
-
 }

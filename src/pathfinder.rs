@@ -79,8 +79,8 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     for i in (0..path.len()).rev() {
         let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
 
-        'dirs: for (i, dir) in Relative::iter().enumerate() {
-            if current.walls[i] {
+        'dirs: for (j, dir) in Relative::iter().enumerate() {
+            if current.walls[j] {
                 continue 'dirs;
             }
 
@@ -98,16 +98,17 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 
             if segment.distance < min_segment.distance {
                 min_segment = segment;
-                min_segment_distance = path.len() - i;
+                min_segment_distance = i;
             }
         }
     }
 
     if maze.segment_vec(path.head().unwrap()).distance <= min_segment.distance {
         let mut to_min: Vec<Vecu, MAZE_SIZE> = Vec::new();
-        for i in (0..min_segment_distance).rev() {
+        for i in (min_segment_distance..path.len() - 1).rev() { // - 1 to skip head
             to_min.push(path.segment(i).unwrap()).unwrap();
         }
+        to_min.push(min_segment.pos()).unwrap();
 
         Result::Stuck(to_min)
     } else {
@@ -225,23 +226,24 @@ mod tests {
     fn find(maze: &Maze, path: &mut Path) {
         path.append(Vecu::new());
 
-        // loop {
-        //     let result = crate::pathfinder::next(&maze, &path);
-        //
-        //     if result.is_found() {
-        //         let next = result.unwrap();
-        //         path.append(next.pos());
-        //
-        //         if next.distance == 0 {
-        //             break;
-        //         }
-        //         continue;
-        //     }
-        //
-        //     let mut segments = next_unvisited(&maze, &path);
-        //     segments.remove(0);
-        //     path.append_all(segments);
-        // }
+        loop {
+            let result = crate::pathfinder::next(&maze, &path);
+
+            if result.is_found() {
+                let next = result.unwrap_found();
+                println!("{:?}", next);
+                path.append(next.pos());
+
+                if next.distance == 0 {
+                    break;
+                }
+                continue;
+            } else {
+                let next: &heapless::Vec<Vecu, 256> = result.unwrap_stuck();
+                println!("{:?}", next);
+                path.append_all(next);
+            }
+        }
     }
 
     #[test]
@@ -372,8 +374,12 @@ mod tests {
         assert_eq!(Vecu { x: 3, y: 1 }, path.segment(4).unwrap());
         assert_eq!(Vecu { x: 2, y: 1 }, path.segment(5).unwrap());
         assert_eq!(Vecu { x: 1, y: 1 }, path.segment(6).unwrap());
-        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(7).unwrap());
-        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(8).unwrap());
-        assert_eq!(Vecu { x: 0, y: 1 }, path.segment(9).unwrap());
+        assert_eq!(Vecu { x: 2, y: 1 }, path.segment(7).unwrap());
+        assert_eq!(Vecu { x: 3, y: 1 }, path.segment(8).unwrap());
+        assert_eq!(Vecu { x: 3, y: 0 }, path.segment(9).unwrap());
+        assert_eq!(Vecu { x: 2, y: 0 }, path.segment(10).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(11).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(12).unwrap());
+        assert_eq!(Vecu { x: 0, y: 1 }, path.segment(13).unwrap());
     }
 }

@@ -5,8 +5,8 @@ use mouse::pathfinder;
 use mouse::vec::{Vecf, Vecu};
 
 fn main() {
-    let mut pos = Vecf::new();
-    let mut heading = Vecf::new();
+    let pos = Vecf::new();
+    let heading = Vecf::new();
 
     let mut maze = Maze::new();
     let mut path = Path::new();

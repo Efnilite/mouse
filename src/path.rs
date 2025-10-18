@@ -1,4 +1,3 @@
-use crate::map::Map;
 use crate::vec::Vecu;
 use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use heapless::Vec;
@@ -231,7 +230,6 @@ mod tests {
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
         assert_eq!(Vecu { x: 1, y: 1 }, path.segment(2).unwrap());
     }
-
 
     #[test]
     fn turns() {

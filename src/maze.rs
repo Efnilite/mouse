@@ -1,7 +1,6 @@
 use crate::vec::Vecu;
 use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use core::slice::Iter;
-use crate::path::Path;
 
 /// Represents the maze
 pub struct Maze {

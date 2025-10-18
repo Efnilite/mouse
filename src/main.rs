@@ -3,7 +3,6 @@ use mouse::maze::Maze;
 use mouse::path::Path;
 use mouse::pathfinder::next;
 use mouse::vec::{Vecf, Vecu};
-use mouse::MAZE_SIZE;
 
 fn main() {
     let mut pos = Vecf::new();

@@ -116,23 +116,23 @@ impl Path {
     /// Assigns `self.segments` to a new optimized [Vec].
     /// todo! avoid bulk optimization and optimize as soon as append_all/append is called
     pub fn optimize(&mut self) {
-        // the first found position of every veci
-        let mut occurrences = Map::new();
         let mut optimized: Vec<Vecu, MAZE_SIZE> = Vec::new();
 
-        for (i, pos) in self.segments.iter().enumerate() {
-            let existing = occurrences.insert(*pos, i);
+        let mut i = 0;
+        'outer: while i < self.segments.len() {
+            let pos = self.segments[i];
 
-            if existing.is_none() {
-                optimized.push(*pos).unwrap();
-                continue;
+            for j in i + 1..self.segments.len() {
+                if self.segments[j] != pos {
+                    continue;
+                }
+
+                i += j - i;
+                continue 'outer;
             }
 
-            let existing = existing.unwrap();
-            for _ in (existing..i).rev() {
-                optimized.pop();
-            }
-            optimized.push(*pos).unwrap();
+            optimized.push(pos).unwrap();
+            i += 1;
         }
 
         self.segments = optimized;
@@ -205,6 +205,28 @@ mod tests {
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
         assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
     }
+
+    #[test]
+    fn optimize_avoid_remove_root() {
+        let mut path = Path::new();
+
+        path.append(Vecu { x: 0, y: 0 });
+        path.append(Vecu { x: 1, y: 0 });
+        path.append(Vecu { x: 2, y: 0 });
+        path.append(Vecu { x: 3, y: 0 });
+        path.append(Vecu { x: 4, y: 0 });
+        path.append(Vecu { x: 3, y: 0 });
+        path.append(Vecu { x: 2, y: 0 });
+        path.append(Vecu { x: 1, y: 0 });
+        path.append(Vecu { x: 1, y: 1 });
+        path.optimize();
+
+        // assert_eq!(3, path.len());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 1, y: 1 }, path.segment(2).unwrap());
+    }
+
 
     #[test]
     fn turns() {

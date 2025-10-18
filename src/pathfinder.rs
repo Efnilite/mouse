@@ -144,7 +144,10 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 /// - `maze` - The current maze.
 /// - `path` - The taken path.
 pub fn update_distances(maze: &mut Maze, path: &Path) {
-    assert!(!path.optimized(), "Only unoptimized paths can have distances updated");
+    assert!(
+        !path.optimized(),
+        "Only unoptimized paths can have distances updated"
+    );
 
     let head_idx = path.len() - 2;
     let root = path.segment(head_idx).unwrap();

@@ -1,6 +1,7 @@
 use crate::vec::Vecu;
 use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use core::slice::Iter;
+use crate::path::Path;
 
 /// Represents the maze
 pub struct Maze {
@@ -69,6 +70,24 @@ impl Maze {
             distance,
             walls: existing.walls,
         };
+    }
+}
+
+impl core::fmt::Debug for Maze {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        for y in 0..MAZE_HEIGHT_U8 {
+            for x in 0..MAZE_WIDTH_U8 {
+                let distance = self.segment(x, y).distance;
+                if distance < 10 {
+                    write!(f, "{:?}  ", distance)?;
+                } else {
+                    write!(f, "{:?} ", distance)?;
+                }
+            }
+            write!(f, "\n")?;
+        }
+        write!(f, "\n")?;
+        Ok(())
     }
 }
 

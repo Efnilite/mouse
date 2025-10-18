@@ -138,6 +138,11 @@ impl Path {
         self.segments = optimized;
         self.optimized = true;
     }
+
+    /// Returns whether this path has been optimized.
+    pub fn optimized(&self) -> bool {
+        self.optimized
+    }
 }
 
 impl core::fmt::Debug for Path {

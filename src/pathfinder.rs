@@ -116,38 +116,63 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
     }
 }
 
-#[derive(Debug)]
-struct ExploredNode {
-    /// The parent of the explored node, null if it is the root.
-    parent: Option<Vecu>,
-}
-
-/// Returns a path to the closest unvisited segment, relative to the head of `path`.
-/// The segments are ordered from the current head of `path` to the target segment.
-/// Includes the head of `path`.
+/// Updates the distances in `maze` when a dead end is reached.
 ///
 /// ### Description
 ///
-/// Finds the closest unvisited segment `t` to the current head of `path`.
+/// Updates the distances in a dead end by BFS such that, for any node `n` in the dead end,
+/// `d(n, goal) == d(start, path.segment(path.len() - 2)) + d(path.segment(path.len() - 2), n)`.
+/// Here, `d` is guaranteed to be the shortest distance between two nodes.
+///
+/// ### Implementation
+///
+/// Every element in the path that is between the last two occurrences of the `root` node
+/// `path.segment(path.len() - 2)` is added to the possible options. If no two
+/// occurrences are found, returns and does nothing.
+///
+/// Then, the last occurrence of `root` is added to `to_explore`, which details which
+/// nodes are to be explored, and `root` is added to `explored`, which details which nodes
+/// to not explore again.
+///
+/// In a loop, BFS is performed. For every node in the options, its distance is updated to
+/// the parent node's distance, plus 1. Nodes that have been explored are added to `explored`.
+/// When there are no more nodes to explore, exits.
 ///
 /// ### Arguments
 ///
 /// - `maze` - The current maze.
 /// - `path` - The taken path.
-///
-/// ### Returns
-///
-/// A [Vec] with all segment locations that should be followed to the nearest unvisited
-/// segment.
-pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
+pub fn update_distances(maze: &mut Maze, path: &Path) {
+    assert!(!path.optimized(), "Only unoptimized paths can have distances updated");
+
+    let head_idx = path.len() - 2;
+    let root = path.segment(head_idx).unwrap();
+    let mut previous_head_idx = usize::MAX; // the first time head re-appeared
+    for i in (0..path.len() - 2).rev() {
+        if path.segment(i).unwrap() == root {
+            previous_head_idx = i;
+            break;
+        }
+    }
+
+    // updating distances cannot be applied if there is no loop
+    if previous_head_idx == head_idx || previous_head_idx == usize::MAX {
+       return;
+    }
+
+    // contains all vecs that can be explored.
+    let mut options: Map<bool> = Map::new();
+    for i in previous_head_idx..head_idx {
+        options.insert(path.segment(i).unwrap(), true);
+    }
+
     let mut to_explore: Deque<Vecu, MAZE_SIZE> = Deque::new();
     // contains the vecs that have been explored, with the value being the parent vec.
     // for the root, value is `None`.
-    let mut explored: Map<ExploredNode> = Map::new();
+    let mut explored: Map<Option<Vecu>> = Map::new();
 
     {
-        let root = path.head().unwrap_or_else(|| Vecu::new());
-        explored.insert(root, ExploredNode { parent: None });
+        explored.insert(root, None);
         to_explore.push_back(root).unwrap();
     }
 
@@ -156,25 +181,6 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
             .pop_front()
             .expect("Failed to find unvisited node in entire maze");
         let current_segment = maze.segment_vec(current_pos);
-
-        // found target
-        if !path.contains(current_pos) {
-            let mut to_exit: Vec<Vecu, MAZE_SIZE> = Vec::new();
-
-            let mut parent = Some(current_pos);
-            while parent != None {
-                let value = parent.unwrap();
-                to_exit.push(value).unwrap();
-                parent = explored.get(&value).unwrap().parent;
-            }
-
-            // update distances by traversing the path and adding to distance
-            // as long as the path is decreasing in distance.
-            // do this for all possible exits of the path
-
-            to_exit.reverse(); // path is constructed the wrong way around
-            return to_exit;
-        }
 
         // check all directions for unvisited segments
         'dirs: for (i, dir) in Relative::iter().enumerate() {
@@ -189,31 +195,28 @@ pub fn next_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu, MAZE_SIZE> {
             }
 
             let segment = relative.unwrap();
-            if explored.contains_key(&segment.pos()) {
-                // already explored
+            let new_pos = segment.pos();
+            if explored.contains_key(&new_pos) || !options.contains_key(&new_pos) {
+                // already explored or not in the options
                 continue 'dirs;
             }
 
             explored.insert(
-                segment.pos(),
-                ExploredNode {
-                    parent: Some(current_pos),
-                },
+                new_pos,
+                Some(current_pos)
             );
-            to_explore.push_back(segment.pos()).unwrap();
+            to_explore.push_back(new_pos).unwrap();
+
+            maze.update_distance(new_pos.x, new_pos.y, current_segment.distance + 1);
         }
     }
-
-    panic!("Failed to find unvisited node in entire maze")
 }
-
-fn update_distances(maze: &Maze, path: &Path) {}
 
 #[cfg(test)]
 mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
-    use crate::pathfinder::next_unvisited;
+    use crate::pathfinder;
     use crate::vec::Vecu;
 
     /// Finds any segment that has a distance of zero.
@@ -223,11 +226,11 @@ mod tests {
     ///
     /// - `maze` - The maze.
     /// - `path` - The path that has been taken so far. Is updated by this method.
-    fn find(maze: &Maze, path: &mut Path) {
+    fn find(maze: &mut Maze, path: &mut Path) {
         path.append(Vecu::new());
 
         loop {
-            let result = crate::pathfinder::next(&maze, &path);
+            let result = pathfinder::next(&maze, &path);
 
             if result.is_found() {
                 let next = result.unwrap_found();
@@ -242,6 +245,7 @@ mod tests {
                 let next: &heapless::Vec<Vecu, 256> = result.unwrap_stuck();
                 println!("{:?}", next);
                 path.append_all(next);
+                pathfinder::update_distances(maze, &path);
             }
         }
     }
@@ -338,6 +342,8 @@ mod tests {
         assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(3).unwrap());
         assert_eq!(Vecu { x: 1, y: 1 }, path.segment(4).unwrap());
+
+        println!("{:?}", maze);
 
         assert_eq!(14, maze.segment(0, 0).distance);
         assert_eq!(13, maze.segment(1, 0).distance);

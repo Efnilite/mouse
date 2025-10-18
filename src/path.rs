@@ -225,7 +225,7 @@ mod tests {
         path.append(Vecu { x: 1, y: 1 });
         path.optimize();
 
-        // assert_eq!(3, path.len());
+        assert_eq!(3, path.len());
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
         assert_eq!(Vecu { x: 1, y: 1 }, path.segment(2).unwrap());

@@ -235,7 +235,6 @@ mod tests {
 
             if result.is_found() {
                 let next = result.unwrap_found();
-                println!("{:?}", next);
                 path.append(next.pos());
 
                 if next.distance == 0 {
@@ -244,7 +243,6 @@ mod tests {
                 continue;
             } else {
                 let next: &heapless::Vec<Vecu, 256> = result.unwrap_stuck();
-                println!("{:?}", next);
                 path.append_all(next);
                 pathfinder::update_distances(maze, &path);
             }
@@ -344,8 +342,6 @@ mod tests {
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(3).unwrap());
         assert_eq!(Vecu { x: 1, y: 1 }, path.segment(4).unwrap());
 
-        println!("{:?}", maze);
-
         assert_eq!(14, maze.segment(0, 0).distance);
         assert_eq!(13, maze.segment(1, 0).distance);
         assert_eq!(14, maze.segment(2, 0).distance);
@@ -388,5 +384,14 @@ mod tests {
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(11).unwrap());
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(12).unwrap());
         assert_eq!(Vecu { x: 0, y: 1 }, path.segment(13).unwrap());
+
+        assert_eq!(14, maze.segment(0, 0).distance);
+        assert_eq!(15, maze.segment(1, 0).distance);
+        assert_eq!(16, maze.segment(2, 0).distance);
+        assert_eq!(17, maze.segment(3, 0).distance);
+
+        assert_eq!(16, maze.segment(1, 1).distance);
+        assert_eq!(17, maze.segment(2, 1).distance);
+        assert_eq!(18, maze.segment(3, 1).distance);
     }
 }

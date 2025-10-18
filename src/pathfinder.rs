@@ -105,7 +105,8 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
 
     if maze.segment_vec(path.head().unwrap()).distance <= min_segment.distance {
         let mut to_min: Vec<Vecu, MAZE_SIZE> = Vec::new();
-        for i in (min_segment_distance..path.len() - 1).rev() { // - 1 to skip head
+        for i in (min_segment_distance..path.len() - 1).rev() {
+            // - 1 to skip head
             to_min.push(path.segment(i).unwrap()).unwrap();
         }
         to_min.push(min_segment.pos()).unwrap();
@@ -157,7 +158,7 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
 
     // updating distances cannot be applied if there is no loop
     if previous_head_idx == head_idx || previous_head_idx == usize::MAX {
-       return;
+        return;
     }
 
     // contains all vecs that can be explored.
@@ -201,10 +202,7 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
                 continue 'dirs;
             }
 
-            explored.insert(
-                new_pos,
-                Some(current_pos)
-            );
+            explored.insert(new_pos, Some(current_pos));
             to_explore.push_back(new_pos).unwrap();
 
             maze.update_distance(new_pos.x, new_pos.y, current_segment.distance + 1);

@@ -26,11 +26,7 @@ impl Path {
         let prev = self.segments[current - 1];
         let next = self.segments[current + 1];
 
-        if prev.x != next.x && prev.y != next.y {
-            true
-        } else {
-            false
-        }
+        prev.x != next.x && prev.y != next.y
     }
 
     /// Returns the current estimated amount of time to complete this path.
@@ -60,6 +56,10 @@ impl Path {
         self.segments.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Return the _n_-th segment that this path has taken.
     /// If the segment has not been visited yet, returns [Segment::new].
     pub fn segment(&self, index: usize) -> Option<Vecu> {
@@ -71,7 +71,7 @@ impl Path {
 
     /// Returns the current head of the path.
     pub fn head(&self) -> Option<Vecu> {
-        if self.len() == 0 {
+        if self.is_empty() {
             return None;
         }
         Some(self.segments[self.len() - 1])
@@ -92,7 +92,7 @@ impl Path {
     ///
     /// - `segments` - The `Segment`s to append to the path.
     pub fn append_all(&mut self, segments: &[Vecu]) {
-        for segment in segments.into_iter() {
+        for segment in segments.iter() {
             self.segments.push(*segment).unwrap();
         }
     }
@@ -144,11 +144,17 @@ impl Path {
     }
 }
 
+impl Default for Path {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl core::fmt::Debug for Path {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
+        writeln!(
             f,
-            "Path | Length {:?} | Time to complete {:?} sec\n",
+            "Path | Length {:?} | Time to complete {:?} sec",
             self.segments.len(),
             if self.optimized {
                 self.time_to_complete()
@@ -165,9 +171,9 @@ impl core::fmt::Debug for Path {
                     write!(f, " ")?;
                 }
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
-        write!(f, "\n")?;
+        writeln!(f)?;
         Ok(())
     }
 }

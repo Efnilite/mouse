@@ -69,7 +69,7 @@ impl Result {
 ///
 /// - [Result::Found] - A valid next segment has been found.
 /// - [Result::Stuck] - A valid next segment has been found, but it is not directly attached
-/// to the head of `path`. Returns the path to the valid next segment.
+///   to the head of `path`. Returns the path to the valid next segment.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
     let mut min_segment = Segment::new();

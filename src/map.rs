@@ -27,6 +27,12 @@ impl<V: core::fmt::Debug> Map<V> {
     }
 }
 
+impl<V: core::fmt::Debug> Default for Map<V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::map::Map;

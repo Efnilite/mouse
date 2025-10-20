@@ -72,6 +72,12 @@ impl Maze {
     }
 }
 
+impl Default for Maze {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl core::fmt::Debug for Maze {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         for y in 0..MAZE_HEIGHT_U8 {
@@ -83,9 +89,9 @@ impl core::fmt::Debug for Maze {
                     write!(f, "{:?} ", distance)?;
                 }
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
-        write!(f, "\n")?;
+        writeln!(f)?;
         Ok(())
     }
 }
@@ -132,13 +138,13 @@ impl Segment {
     /// Whether this segment is a dead end.
     /// A dead end is defined as a segment with 3 walls and 1 entrance.
     pub fn is_dead_end(&self) -> bool {
-        self.walls.iter().filter(|it| **it == true).count() == 3
+        self.walls.iter().filter(|it| **it).count() == 3
     }
 
     /// Whether this segment is straight.
     /// A segment is straight when there are 2 walls and 1 exit and 1 entrance.
     pub fn is_straight(&self) -> bool {
-        self.walls.iter().filter(|it| **it == true).count() == 2
+        self.walls.iter().filter(|it| **it).count() == 2
     }
 
     /// Returns the position of this segment.
@@ -162,5 +168,11 @@ impl Segment {
             Relative::East if x + 1 < MAZE_WIDTH_U8 => Some(maze.segment(x + 1, y)),
             _ => None,
         }
+    }
+}
+
+impl Default for Segment {
+    fn default() -> Self {
+        Self::new()
     }
 }

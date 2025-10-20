@@ -12,6 +12,12 @@ impl Vecu {
     }
 }
 
+impl Default for Vecu {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl core::fmt::Debug for Vecu {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "({:?}, {:?})", self.x, self.y)?;
@@ -33,6 +39,12 @@ impl Veci {
     }
 }
 
+impl Default for Veci {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl core::fmt::Debug for Veci {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "({:?}, {:?})", self.x, self.y)?;
@@ -51,6 +63,12 @@ impl Vecf {
     /// Returns a new [Vecf] as zero-vector.
     pub fn new() -> Self {
         Vecf { x: 0f64, y: 0f64 }
+    }
+}
+
+impl Default for Vecf {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

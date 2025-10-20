@@ -5,8 +5,8 @@ use mouse::pathfinder;
 use mouse::vec::{Vecf, Vecu};
 
 fn main() {
-    let pos = Vecf::new();
-    let heading = Vecf::new();
+    let _pos = Vecf::new();
+    let _heading = Vecf::new();
 
     let mut maze = Maze::new();
     let mut path = Path::new();
@@ -37,7 +37,7 @@ fn main() {
         } else {
             let next: &Vec<Vecu, 256> = result.unwrap_stuck();
             println!("{:?}", next);
-            path.append_all(&next);
+            path.append_all(next);
             pathfinder::update_distances(&mut maze, &path);
         }
     }

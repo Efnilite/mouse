@@ -233,18 +233,19 @@ mod tests {
         loop {
             let result = pathfinder::next(&maze, &path);
 
-            if result.is_found() {
-                let next = result.unwrap_found();
-                path.append(next.pos());
+            match result {
+                pathfinder::Result::Found(next) => {
+                    path.append(next.pos());
 
-                if next.distance == 0 {
-                    break;
+                    if next.distance == 0 {
+                        break;
+                    }
+                    continue;
+                },
+                pathfinder::Result::Stuck(next) => {
+                    path.append_all(&next);
+                    pathfinder::update_distances(maze, &path);
                 }
-                continue;
-            } else {
-                let next: &heapless::Vec<Vecu, 256> = result.unwrap_stuck();
-                path.append_all(next);
-                pathfinder::update_distances(maze, &path);
             }
         }
     }

@@ -134,14 +134,6 @@ impl core::fmt::Debug for Maze {
     }
 }
 
-/// Represents a point on the grid.
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Segment {
-    pos: Vecu,
-    pub distance: u8,
-    pub walls: [bool; 4],
-}
-
 /// The relative direction.
 #[derive(PartialEq, Debug)]
 pub enum Relative {
@@ -174,12 +166,29 @@ impl Relative {
     }
 }
 
+/// Represents a point on the grid.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Segment {
+    pos: Vecu,
+    pub distance: u8,
+    pub walls: [bool; 4],
+}
+
 impl Segment {
     /// Creates a new default Segment.
     pub fn new() -> Self {
         Segment {
             pos: Vecu::new(),
             distance: u8::MAX,
+            walls: [false, false, false, false],
+        }
+    }
+
+    /// Creates a new default Segment.
+    pub fn with_pos(pos: Vecu, distance: u8) -> Self {
+        Segment {
+            pos,
+            distance,
             walls: [false, false, false, false],
         }
     }

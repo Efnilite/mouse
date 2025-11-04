@@ -65,7 +65,6 @@ where
 }
 
 impl Maze {
-
     /// Creates a new maze centered around the center.
     pub fn new() -> Self {
         with_walls_fn(Target::Center, |_x, _y| [false, false, false, false])
@@ -214,10 +213,10 @@ impl Segment {
     }
 
     /// Creates a new default Segment.
-    pub fn with_pos(pos: Vecu) -> Self {
+    pub fn with_pos(pos: Vecu, distance: u8) -> Self {
         Segment {
             pos,
-            distance: u8::MAX,
+            distance,
             walls: [false, false, false, false],
         }
     }

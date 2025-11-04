@@ -3,6 +3,7 @@ use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
 use crate::vec::Vecu;
 use std::collections::VecDeque;
+use crate::MAZE_SIZE;
 
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
@@ -78,49 +79,30 @@ pub enum Target {
 ///   to the head of `path`. Returns the path to the valid next segment.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
-    let mut min_segment = Segment::with_pos(path.segment(0).unwrap());
-    // the distance from min segment to the current head in the loop
-    let mut distance_from_head = 0usize;
+    let head = path.head().expect("Failed to find path head");
+    let current = maze.segment_vec(head);
 
-    for i in (0..path.len()).rev() {
-        let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
+    'dirs: for (j, dir) in Relative::iter().enumerate() {
+        if current.walls[j] {
+            continue 'dirs;
+        }
 
-        'dirs: for (j, dir) in Relative::iter().enumerate() {
-            if current.walls[j] {
-                continue 'dirs;
-            }
+        let segment = current.relative(maze, dir);
+        if segment.is_none() {
+            continue 'dirs;
+        }
 
-            let segment = current.relative(maze, dir);
+        let segment = segment.unwrap();
+        if path.contains(segment.pos()) {
+            continue 'dirs;
+        }
 
-            if segment.is_none() {
-                continue 'dirs;
-            }
-
-            let segment = segment.unwrap();
-
-            if path.contains(segment.pos()) {
-                continue 'dirs;
-            }
-
-            if &segment.distance < &min_segment.distance {
-                min_segment = segment;
-                distance_from_head = i;
-            }
+        if &segment.distance < &current.distance {
+            return Result::Found(segment)
         }
     }
 
-    if &maze.segment_vec(path.head().unwrap()).distance < &min_segment.distance {
-        let mut to_min: Vec<Vecu> = Vec::with_capacity(path.len() - distance_from_head);
-        for i in (distance_from_head..path.len() - 1).rev() {
-            // - 1 to skip head
-            to_min.push(path.segment(i).unwrap());
-        }
-        to_min.push(min_segment.pos());
-
-        Result::Stuck(to_min)
-    } else {
-        Result::Found(min_segment)
-    }
+    Result::Stuck(nearest_unvisited(maze, path))
 }
 
 /// Updates the distances in `maze` when a dead end is reached.
@@ -219,13 +201,8 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
     }
 }
 
-pub fn nearest_unvisited(maze: &Maze, old: &Path) -> Path {
-    assert!(
-        old.optimized(),
-        "Only optimized paths can have nearest unvisited calculated"
-    );
-
-    let mut path = Path::new();
+pub fn nearest_unvisited(maze: &Maze, old: &Path) -> Vec<Vecu> {
+    let mut to: Vec<Vecu> = Vec::with_capacity(MAZE_SIZE);
 
     for i in (0..old.len()).rev() {
         let current = maze.segment_vec(old.segment(i).expect("Failed to find path segment"));
@@ -242,16 +219,16 @@ pub fn nearest_unvisited(maze: &Maze, old: &Path) -> Path {
             let segment = segment.unwrap();
 
             if !old.contains(segment.pos()) {
-                path.append(segment.pos());
-                return path;
+                to.push(segment.pos());
+                return to;
             }
         }
 
-        path.append(current.pos());
+        to.push(current.pos());
     }
 
     // if there are no other paths, use old path
-    path
+    to
 }
 
 #[cfg(test)]

@@ -201,11 +201,11 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
     }
 }
 
-pub fn nearest_unvisited(maze: &Maze, old: &Path) -> Vec<Vecu> {
+pub fn nearest_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu> {
     let mut to: Vec<Vecu> = Vec::with_capacity(MAZE_SIZE);
 
-    for i in (0..old.len()).rev() {
-        let current = maze.segment_vec(old.segment(i).expect("Failed to find path segment"));
+    for i in (0..path.len()).rev() {
+        let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
 
         'dirs: for (j, dir) in Relative::iter().enumerate() {
             if current.walls[j] {
@@ -217,14 +217,21 @@ pub fn nearest_unvisited(maze: &Maze, old: &Path) -> Vec<Vecu> {
                 continue 'dirs;
             }
             let segment = segment.unwrap();
-
-            if !old.contains(segment.pos()) {
-                to.push(segment.pos());
-                return to;
+            if path.contains(segment.pos()) {
+                continue;
             }
+
+            if i != path.len() - 1 {
+                to.push(current.pos());
+            }
+            to.push(segment.pos());
+            println!("{:?}", to);
+            return to;
         }
 
-        to.push(current.pos());
+        if i != path.len() - 1 {
+            to.push(current.pos());
+        }
     }
 
     // if there are no other paths, use old path
@@ -405,20 +412,20 @@ mod tests {
 
         find_negative(&mut maze, &mut path);
 
-        // assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
-        // assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
-        // assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
-        // assert_eq!(Vecu { x: 3, y: 0 }, path.segment(3).unwrap());
-        // assert_eq!(Vecu { x: 3, y: 1 }, path.segment(4).unwrap());
-        // assert_eq!(Vecu { x: 2, y: 1 }, path.segment(5).unwrap());
-        // assert_eq!(Vecu { x: 1, y: 1 }, path.segment(6).unwrap());
-        // assert_eq!(Vecu { x: 2, y: 1 }, path.segment(7).unwrap());
-        // assert_eq!(Vecu { x: 3, y: 1 }, path.segment(8).unwrap());
-        // assert_eq!(Vecu { x: 3, y: 0 }, path.segment(9).unwrap());
-        // assert_eq!(Vecu { x: 2, y: 0 }, path.segment(10).unwrap());
-        // assert_eq!(Vecu { x: 1, y: 0 }, path.segment(11).unwrap());
-        // assert_eq!(Vecu { x: 0, y: 0 }, path.segment(12).unwrap());
-        // assert_eq!(Vecu { x: 0, y: 1 }, path.segment(13).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
+        assert_eq!(Vecu { x: 2, y: 0 }, path.segment(2).unwrap());
+        assert_eq!(Vecu { x: 3, y: 0 }, path.segment(3).unwrap());
+        assert_eq!(Vecu { x: 3, y: 1 }, path.segment(4).unwrap());
+        assert_eq!(Vecu { x: 2, y: 1 }, path.segment(5).unwrap());
+        assert_eq!(Vecu { x: 1, y: 1 }, path.segment(6).unwrap());
+        assert_eq!(Vecu { x: 2, y: 1 }, path.segment(7).unwrap());
+        assert_eq!(Vecu { x: 3, y: 1 }, path.segment(8).unwrap());
+        assert_eq!(Vecu { x: 3, y: 0 }, path.segment(9).unwrap());
+        assert_eq!(Vecu { x: 2, y: 0 }, path.segment(10).unwrap());
+        assert_eq!(Vecu { x: 1, y: 0 }, path.segment(11).unwrap());
+        assert_eq!(Vecu { x: 0, y: 0 }, path.segment(12).unwrap());
+        assert_eq!(Vecu { x: 0, y: 1 }, path.segment(13).unwrap());
 
         assert_eq!(14, maze.segment(0, 0).distance);
         assert_eq!(15, maze.segment(1, 0).distance);

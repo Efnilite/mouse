@@ -64,13 +64,19 @@ impl Result {
 ///
 /// - `maze` - The current maze.
 /// - `path` - The taken path.
+/// - `next` - The closure for selecting the next segment when it returns true.
+/// - `stuck` - The closure for determining that the head of the segment is stuck when it returns true.
 ///
 /// ### Returns
 ///
 /// - [Result::Found] - A valid next segment has been found.
 /// - [Result::Stuck] - A valid next segment has been found, but it is not directly attached
 ///   to the head of `path`. Returns the path to the valid next segment.
-pub fn next(maze: &Maze, path: &Path) -> Result {
+pub fn next<Next, Stuck>(maze: &Maze, path: &Path, next: Next, stuck: Stuck) -> Result
+where
+    Next: Fn(&Segment, &Segment) -> bool,
+    Stuck: Fn(&Segment, &Segment) -> bool
+{
     // the smallest segment so far
     let mut min_segment = Segment::new();
     // the distance from min segment to the current segment in the loop
@@ -96,14 +102,14 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
                 continue 'dirs;
             }
 
-            if segment.distance < min_segment.distance {
+            if next(&segment, &min_segment) {
                 min_segment = segment;
                 min_segment_distance = i;
             }
         }
     }
 
-    if maze.segment_vec(path.head().unwrap()).distance <= min_segment.distance {
+    if stuck(&maze.segment_vec(path.head().unwrap()), &min_segment) {
         let mut to_min: Vec<Vecu, MAZE_SIZE> = Vec::new();
         for i in (min_segment_distance..path.len() - 1).rev() {
             // - 1 to skip head
@@ -231,7 +237,12 @@ mod tests {
         path.append(Vecu::new());
 
         loop {
-            let result = pathfinder::next(&maze, &path);
+            let result = pathfinder::next(
+                &maze,
+                &path,
+                |a, b| a.distance < b.distance,
+                |a, b| a.distance <= b.distance
+            );
 
             match result {
                 pathfinder::Result::Found(next) => {
@@ -241,7 +252,7 @@ mod tests {
                         break;
                     }
                     continue;
-                },
+                }
                 pathfinder::Result::Stuck(next) => {
                     path.append_all(&next);
                     pathfinder::update_distances(maze, &path);

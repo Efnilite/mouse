@@ -21,8 +21,14 @@ fn main() {
     maze.update_walls(2, 1, [true, false, true, false]);
     maze.update_walls(3, 1, [false, true, true, false]);
 
+    // first deep dive
     loop {
-        let result = pathfinder::next(&maze, &path);
+        let result = pathfinder::next(
+            &maze,
+            &path,
+            |a, b| a.distance < b.distance,
+            |a, b| a.distance <= b.distance,
+        );
 
         match result {
             pathfinder::Result::Found(next) => {
@@ -32,7 +38,34 @@ fn main() {
                     break;
                 }
                 continue;
-            },
+            }
+            pathfinder::Result::Stuck(next) => {
+                path.append_all(&next);
+                pathfinder::update_distances(&mut maze, &path);
+            }
+        }
+    }
+
+    // todo find first unvisited node
+
+    // second
+    loop {
+        let result = pathfinder::next(
+            &maze,
+            &path,
+            |a, b| a.distance > b.distance,
+            |a, b| a.distance >= b.distance,
+        );
+
+        match result {
+            pathfinder::Result::Found(next) => {
+                path.append(next.pos());
+
+                if next.pos() == Vecu::new() {
+                    break;
+                }
+                continue;
+            }
             pathfinder::Result::Stuck(next) => {
                 path.append_all(&next);
                 pathfinder::update_distances(&mut maze, &path);

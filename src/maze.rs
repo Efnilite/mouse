@@ -80,6 +80,7 @@ impl Maze {
         existing.walls = walls;
         self.segments[i] = existing;
 
+        // update neighbouring segments' walls
         for (j, dir) in Relative::iter().enumerate() {
             if !walls[j] {
                 continue;
@@ -151,7 +152,6 @@ pub enum Relative {
 }
 
 impl Relative {
-
     /// Returns an iterator over all relative directions.
     pub fn iter() -> Iter<'static, Relative> {
         static DIRECTIONS: [Relative; 4] = [
@@ -169,7 +169,7 @@ impl Relative {
             Relative::North => Relative::South,
             Relative::East => Relative::West,
             Relative::South => Relative::North,
-            Relative::West => Relative::East
+            Relative::West => Relative::East,
         }
     }
 }
@@ -226,6 +226,7 @@ impl Default for Segment {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::maze::Maze;
     use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -234,10 +235,12 @@ mod tests {
     fn test_wall_update_panics() {
         let mut maze = Maze::new();
         maze.update_walls(0, 0, [false, true, false, false]);
-        assert!(
-            catch_unwind(AssertUnwindSafe(|| maze.update_walls(0, 0, [false, false, false, false])))
-                .is_err()
-        )
+        assert!(catch_unwind(AssertUnwindSafe(|| maze.update_walls(
+            0,
+            0,
+            [false, false, false, false]
+        )))
+        .is_err())
     }
 
     #[test]

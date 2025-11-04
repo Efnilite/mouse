@@ -2,14 +2,13 @@ use crate::map::Map;
 use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
 use crate::vec::Vecu;
-use crate::MAZE_SIZE;
-use heapless::{Deque, Vec};
+use std::collections::VecDeque;
 
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
     /// Indicates that a segment has been found that is not a neighbour of the head of the path.
     /// Contains the new segment and the path from the head to the segment.
-    Stuck(Vec<Vecu, MAZE_SIZE>),
+    Stuck(Vec<Vecu>),
 
     /// Indicates that a valid neighbour has been found as the next segment.
     Found(Segment),
@@ -35,7 +34,7 @@ impl Result {
     }
 
     /// Unwraps the stuck value.
-    pub fn unwrap_stuck(&self) -> &Vec<Vecu, MAZE_SIZE> {
+    pub fn unwrap_stuck(&self) -> &Vec<Vecu> {
         match self {
             Result::Stuck(s) => s,
             _ => panic!("Called `Result::unwrap_stuck` on a non-Stuck value"),
@@ -75,7 +74,7 @@ impl Result {
 pub fn next<Next, Stuck>(maze: &Maze, path: &Path, next: Next, stuck: Stuck) -> Result
 where
     Next: Fn(&Segment, &Segment) -> bool,
-    Stuck: Fn(&Segment, &Segment) -> bool
+    Stuck: Fn(&Segment, &Segment) -> bool,
 {
     // the smallest segment so far
     let mut min_segment = Segment::new();
@@ -110,12 +109,12 @@ where
     }
 
     if stuck(&maze.segment_vec(path.head().unwrap()), &min_segment) {
-        let mut to_min: Vec<Vecu, MAZE_SIZE> = Vec::new();
+        let mut to_min: Vec<Vecu> = Vec::new();
         for i in (min_segment_distance..path.len() - 1).rev() {
             // - 1 to skip head
-            to_min.push(path.segment(i).unwrap()).unwrap();
+            to_min.push(path.segment(i).unwrap());
         }
-        to_min.push(min_segment.pos()).unwrap();
+        to_min.push(min_segment.pos());
 
         Result::Stuck(to_min)
     } else {
@@ -176,14 +175,14 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
         options.insert(path.segment(i).unwrap(), true);
     }
 
-    let mut to_explore: Deque<Vecu, MAZE_SIZE> = Deque::new();
+    let mut to_explore: VecDeque<Vecu> = VecDeque::new();
     // contains the vecs that have been explored, with the value being the parent vec.
     // for the root, value is `None`.
     let mut explored: Map<Option<Vecu>> = Map::new();
 
     {
         explored.insert(root, None);
-        to_explore.push_back(root).unwrap();
+        to_explore.push_back(root);
     }
 
     while !to_explore.is_empty() {
@@ -212,11 +211,38 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
             }
 
             explored.insert(new_pos, Some(current_pos));
-            to_explore.push_back(new_pos).unwrap();
+            to_explore.push_back(new_pos);
 
             maze.update_distance(new_pos.x, new_pos.y, current_segment.distance + 1);
         }
     }
+}
+
+pub fn nearest_unvisited(maze: &Maze, path: &Path) -> Segment {
+    assert!(
+        path.optimized(),
+        "Only optimized paths can have nearest unvisited calculated"
+    );
+
+    for i in (0..path.len()).rev() {
+        let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
+
+        'dirs: for (j, dir) in Relative::iter().enumerate() {
+            if current.walls[j] {
+                continue 'dirs;
+            }
+
+            let segment = current.relative(maze, dir);
+
+            if segment.is_none() {
+                continue 'dirs;
+            }
+
+            return segment.unwrap();
+        }
+    }
+
+    panic!("Failed to find unvisited neighbour segment");
 }
 
 #[cfg(test)]
@@ -241,7 +267,7 @@ mod tests {
                 &maze,
                 &path,
                 |a, b| a.distance < b.distance,
-                |a, b| a.distance <= b.distance
+                |a, b| a.distance <= b.distance,
             );
 
             match result {

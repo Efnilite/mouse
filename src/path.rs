@@ -1,6 +1,5 @@
 use crate::vec::Vecu;
 use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
-use heapless::Vec;
 
 pub const ACCELERATION_MS2: f64 = 2.;
 pub const MAX_SPEED_MS: f64 = 5.;
@@ -8,7 +7,7 @@ pub const MAX_SPEED_MS: f64 = 5.;
 /// Represents a path that may be taken
 pub struct Path {
     /// The taken segments
-    segments: Vec<Vecu, MAZE_SIZE>,
+    segments: Vec<Vecu>,
     optimized: bool,
 }
 
@@ -83,7 +82,7 @@ impl Path {
     ///
     /// - `segment` - The `Segment` to append to the path.
     pub fn append(&mut self, segment: Vecu) {
-        self.segments.push(segment).unwrap();
+        self.segments.push(segment);
     }
 
     /// Appends segments to the path.
@@ -93,7 +92,7 @@ impl Path {
     /// - `segments` - The `Segment`s to append to the path.
     pub fn append_all(&mut self, segments: &[Vecu]) {
         for segment in segments.iter() {
-            self.segments.push(*segment).unwrap();
+            self.segments.push(*segment);
         }
     }
 
@@ -115,7 +114,7 @@ impl Path {
     /// Assigns `self.segments` to a new optimized [Vec].
     /// todo! avoid bulk optimization and optimize as soon as append_all/append is called
     pub fn optimize(&mut self) {
-        let mut optimized: Vec<Vecu, MAZE_SIZE> = Vec::new();
+        let mut optimized: Vec<Vecu> = Vec::new();
 
         let mut i = 0;
         'outer: while i < self.segments.len() {
@@ -130,7 +129,7 @@ impl Path {
                 continue 'outer;
             }
 
-            optimized.push(pos).unwrap();
+            optimized.push(pos);
             i += 1;
         }
 

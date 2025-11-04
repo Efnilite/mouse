@@ -8,9 +8,9 @@ fn main() {
     let _heading = Vecf::new();
 
     let mut maze = Maze::new();
-    let mut path = Path::new();
+    let mut first = Path::new();
 
-    path.append(Vecu::new());
+    first.append(Vecu::new());
     maze.update_walls(0, 0, [true, false, false, true]);
     maze.update_walls(1, 0, [true, false, false, false]);
     maze.update_walls(2, 0, [true, false, true, false]);
@@ -25,14 +25,14 @@ fn main() {
     loop {
         let result = pathfinder::next(
             &maze,
-            &path,
+            &first,
             |a, b| a.distance < b.distance,
             |a, b| a.distance <= b.distance,
         );
 
         match result {
             pathfinder::Result::Found(next) => {
-                path.append(next.pos());
+                first.append(next.pos());
 
                 if next.distance == 0 {
                     break;
@@ -40,26 +40,30 @@ fn main() {
                 continue;
             }
             pathfinder::Result::Stuck(next) => {
-                path.append_all(&next);
-                pathfinder::update_distances(&mut maze, &path);
+                first.append_all(&next);
+                pathfinder::update_distances(&mut maze, &first);
             }
         }
     }
 
     // todo find first unvisited node
+    first.optimize();
+    let start = pathfinder::nearest_unvisited(&maze, &first);
+    let mut second = Path::new();
+    second.append(start.pos());
 
     // second
     loop {
         let result = pathfinder::next(
             &maze,
-            &path,
+            &second,
             |a, b| a.distance > b.distance,
             |a, b| a.distance >= b.distance,
         );
 
         match result {
             pathfinder::Result::Found(next) => {
-                path.append(next.pos());
+                second.append(next.pos());
 
                 if next.pos() == Vecu::new() {
                     break;
@@ -67,14 +71,13 @@ fn main() {
                 continue;
             }
             pathfinder::Result::Stuck(next) => {
-                path.append_all(&next);
-                pathfinder::update_distances(&mut maze, &path);
+                second.append_all(&next);
+                pathfinder::update_distances(&mut maze, &second);
             }
         }
     }
 
-    path.optimize();
-    path.time_to_complete();
-
+    println!("{:?}", first);
+    println!("{:?}", second);
     println!("{:?}", maze);
 }

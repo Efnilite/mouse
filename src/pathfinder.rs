@@ -98,7 +98,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
             continue 'dirs;
         }
 
-        if &segment.distance < &current.distance {
+        if segment.distance < current.distance {
             return Result::Found(segment);
         }
     }

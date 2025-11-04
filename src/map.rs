@@ -14,7 +14,7 @@ impl<V: core::fmt::Debug> Map<V> {
         }
     }
 
-    pub fn get(&self, vec: &Vecu) -> Option<&V> {
+    pub fn _get(&self, vec: &Vecu) -> Option<&V> {
         self.elements.get(vec)
     }
 
@@ -42,7 +42,7 @@ mod tests {
     fn map() {
         let mut map: Map<u8> = Map::new();
 
-        assert_eq!(None, map.get(&Vecu { x: 0, y: 0 }));
+        assert_eq!(None, map._get(&Vecu { x: 0, y: 0 }));
         assert_eq!(None, map.insert(Vecu { x: 0, y: 0 }, 1));
     }
 }

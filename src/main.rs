@@ -41,7 +41,7 @@ fn main() {
     let mut maze = Maze::with_walls(Target::Origin, maze);
     let mut second = Path::new();
     second.append(first.head().unwrap());
-    second.append_all(&*pathfinder::nearest_unvisited(&maze, &first));
+    second.append_all(&pathfinder::nearest_unvisited(&maze, &first));
 
     // second
     loop {

@@ -30,26 +30,20 @@ where
 {
     let mut points = [Segment::new(); MAZE_SIZE];
 
-    let distances;
-
-    match target {
-        Target::Center => {
-            distances = [
-                |x, y| maze_calc_distance(x, y, 8, 8),
-                |x, y| maze_calc_distance(x, y, 7, 8),
-                |x, y| maze_calc_distance(x, y, 8, 7),
-                |x, y| maze_calc_distance(x, y, 7, 7),
-            ];
-        }
-        Target::Origin => {
-            distances = [
-                |x, y| maze_calc_distance(x, y, 0, 0),
-                |_x, _y| u8::MAX,
-                |_x, _y| u8::MAX,
-                |_x, _y| u8::MAX,
-            ];
-        }
-    }
+    let distances = match target {
+        Target::Center => [
+            |x, y| maze_calc_distance(x, y, 8, 8),
+            |x, y| maze_calc_distance(x, y, 7, 8),
+            |x, y| maze_calc_distance(x, y, 8, 7),
+            |x, y| maze_calc_distance(x, y, 7, 7),
+        ],
+        Target::Origin => [
+            |x, y| maze_calc_distance(x, y, 0, 0),
+            |_x, _y| u8::MAX,
+            |_x, _y| u8::MAX,
+            |_x, _y| u8::MAX,
+        ],
+    };
 
     for x in 0..MAZE_WIDTH_U8 {
         for y in 0..MAZE_HEIGHT_U8 {
@@ -100,7 +94,7 @@ impl Maze {
 
         for (i, val) in existing.walls.iter().enumerate() {
             assert!(
-                (!(*val) && !walls[i]) || (!(*val) && walls[i]) || (*val && walls[i]),
+                !(*val) || walls[i],
                 "Walls can only be updated from false to true"
             )
         }

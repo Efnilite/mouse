@@ -2,8 +2,8 @@ use crate::map::Map;
 use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
 use crate::vec::Vecu;
-use std::collections::VecDeque;
 use crate::MAZE_SIZE;
+use std::collections::VecDeque;
 
 /// The result of an attempted pathfinding using [next].
 pub enum Result {
@@ -98,7 +98,7 @@ pub fn next(maze: &Maze, path: &Path) -> Result {
         }
 
         if &segment.distance < &current.distance {
-            return Result::Found(segment)
+            return Result::Found(segment);
         }
     }
 

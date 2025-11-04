@@ -1,9 +1,9 @@
-use std::ptr::null;
 use mouse::maze::Maze;
 use mouse::path::Path;
 use mouse::pathfinder;
 use mouse::pathfinder::Target;
 use mouse::vec::{Vecf, Vecu};
+use std::ptr::null;
 
 fn main() {
     let _pos = Vecf::new();

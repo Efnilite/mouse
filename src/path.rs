@@ -1,5 +1,5 @@
 use crate::vec::Vecu;
-use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
+use crate::{MAZE_HEIGHT_U8, MAZE_WIDTH_U8};
 
 pub const ACCELERATION_MS2: f64 = 2.;
 pub const MAX_SPEED_MS: f64 = 5.;

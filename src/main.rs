@@ -48,9 +48,7 @@ fn main() {
 
     // todo find first unvisited node
     first.optimize();
-    let start = pathfinder::nearest_unvisited(&maze, &first);
-    let mut second = Path::new();
-    second.append(start.pos());
+    let mut second = pathfinder::nearest_unvisited(&maze, &first);
 
     // second
     loop {

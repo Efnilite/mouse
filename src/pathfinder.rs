@@ -218,14 +218,16 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
     }
 }
 
-pub fn nearest_unvisited(maze: &Maze, path: &Path) -> Segment {
+pub fn nearest_unvisited(maze: &Maze, old: &Path) -> Path {
     assert!(
-        path.optimized(),
+        old.optimized(),
         "Only optimized paths can have nearest unvisited calculated"
     );
 
-    for i in (0..path.len()).rev() {
-        let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
+    let mut path = Path::new();
+
+    for i in (0..old.len()).rev() {
+        let current = maze.segment_vec(old.segment(i).expect("Failed to find path segment"));
 
         'dirs: for (j, dir) in Relative::iter().enumerate() {
             if current.walls[j] {
@@ -238,11 +240,11 @@ pub fn nearest_unvisited(maze: &Maze, path: &Path) -> Segment {
                 continue 'dirs;
             }
 
-            return segment.unwrap();
+            path.append(current.pos());
         }
     }
 
-    panic!("Failed to find unvisited neighbour segment");
+    path
 }
 
 #[cfg(test)]
@@ -259,7 +261,7 @@ mod tests {
     ///
     /// - `maze` - The maze.
     /// - `path` - The path that has been taken so far. Is updated by this method.
-    fn find(maze: &mut Maze, path: &mut Path) {
+    fn find_negative(maze: &mut Maze, path: &mut Path) {
         path.append(Vecu::new());
 
         loop {
@@ -292,7 +294,7 @@ mod tests {
         let mut maze = Maze::new();
         let mut path = Path::new();
 
-        find(&mut maze, &mut path);
+        find_negative(&mut maze, &mut path);
 
         assert_eq!(15, path.len());
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
@@ -324,7 +326,7 @@ mod tests {
         maze.update_walls(0, 0, [true, true, false, true]);
         maze.update_walls(0, 1, [false, true, false, true]);
 
-        find(&mut maze, &mut path);
+        find_negative(&mut maze, &mut path);
 
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 0, y: 1 }, path.segment(1).unwrap());
@@ -349,7 +351,7 @@ mod tests {
         maze.update_walls(2, 2, [false, false, true, true]);
         maze.update_walls(3, 2, [true, true, false, false]);
 
-        find(&mut maze, &mut path);
+        find_negative(&mut maze, &mut path);
 
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
@@ -372,7 +374,7 @@ mod tests {
         maze.update_walls(2, 0, [true, true, true, false]);
         maze.update_walls(1, 1, [false, false, false, false]);
 
-        find(&mut maze, &mut path);
+        find_negative(&mut maze, &mut path);
 
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());
@@ -406,7 +408,7 @@ mod tests {
         maze.update_walls(2, 1, [true, false, true, false]);
         maze.update_walls(3, 1, [false, true, true, false]);
 
-        find(&mut maze, &mut path);
+        find_negative(&mut maze, &mut path);
 
         assert_eq!(Vecu { x: 0, y: 0 }, path.segment(0).unwrap());
         assert_eq!(Vecu { x: 1, y: 0 }, path.segment(1).unwrap());

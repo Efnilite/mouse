@@ -37,9 +37,19 @@ impl Maze {
         Maze { segments: points }
     }
 
+    /// Converts the position to the index for `segments`.
+    fn xy_to_index(&self, x: u8, y: u8) -> usize {
+        (x + y * MAZE_WIDTH_U8) as usize
+    }
+
+    /// Converts the position to the index for `segments`.
+    fn pos_to_index(&self, pos: Vecu) -> usize {
+        self.xy_to_index(pos.x, pos.y)
+    }
+
     /// Returns the segment at `x, y`.
     pub fn segment(&self, x: u8, y: u8) -> Segment {
-        self.segments[(x + y * MAZE_WIDTH_U8) as usize]
+        self.segments[self.xy_to_index(x, y)]
     }
 
     /// Returns the segment at `x, y`.
@@ -47,16 +57,43 @@ impl Maze {
         self.segment(pos.x, pos.y)
     }
 
+    /// Adds a wall at the specified direction.
+    fn _add_wall(&mut self, x: u8, y: u8, direction: Relative) {
+        let i = self.xy_to_index(x, y);
+        let mut existing = self.segments[i];
+        existing.walls[direction as usize] = true;
+        self.segments[i] = existing;
+    }
+
     /// Updates the walls of the segment at `x, y` to the specified array.
     pub fn update_walls(&mut self, x: u8, y: u8, walls: [bool; 4]) {
-        let i = (x + y * MAZE_WIDTH_U8) as usize;
-        let existing = self.segments[i];
+        let i = self.xy_to_index(x, y);
+        let mut existing = self.segments[i];
 
-        self.segments[i] = Segment {
-            pos: existing.pos,
-            distance: existing.distance,
-            walls,
-        };
+        for (i, val) in existing.walls.iter().enumerate() {
+            assert!(
+                (!(*val) && !walls[i]) || (!(*val) && walls[i]) || (*val && walls[i]),
+                "Walls can only be updated from false to true"
+            )
+        }
+
+        existing.walls = walls;
+        self.segments[i] = existing;
+
+        for (j, dir) in Relative::iter().enumerate() {
+            if !walls[j] {
+                continue;
+            }
+
+            let relative = existing.relative(self, dir);
+            if relative.is_none() {
+                continue;
+            }
+
+            let mut relative = relative.unwrap();
+            relative.walls[dir.opposite() as usize] = true;
+            self.segments[self.pos_to_index(relative.pos())] = relative;
+        }
     }
 
     /// Updates the distance of the segment at `x, y` to the specified value.
@@ -114,6 +151,8 @@ pub enum Relative {
 }
 
 impl Relative {
+
+    /// Returns an iterator over all relative directions.
     pub fn iter() -> Iter<'static, Relative> {
         static DIRECTIONS: [Relative; 4] = [
             Relative::North,
@@ -122,6 +161,16 @@ impl Relative {
             Relative::West,
         ];
         DIRECTIONS.iter()
+    }
+
+    /// Returns the direction opposite to this direction.
+    pub fn opposite(&self) -> Relative {
+        match self {
+            Relative::North => Relative::South,
+            Relative::East => Relative::West,
+            Relative::South => Relative::North,
+            Relative::West => Relative::East
+        }
     }
 }
 
@@ -174,5 +223,41 @@ impl Segment {
 impl Default for Segment {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+mod tests {
+    use crate::maze::Maze;
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+
+    #[test]
+    fn test_wall_update_panics() {
+        let mut maze = Maze::new();
+        maze.update_walls(0, 0, [false, true, false, false]);
+        assert!(
+            catch_unwind(AssertUnwindSafe(|| maze.update_walls(0, 0, [false, false, false, false])))
+                .is_err()
+        )
+    }
+
+    #[test]
+    fn test_wall_update() {
+        let mut maze = Maze::new();
+        maze.update_walls(0, 0, [false, true, false, false]);
+
+        assert_eq!([false, true, false, false], maze.segment(0, 0).walls);
+        assert_eq!([false, false, false, true], maze.segment(1, 0).walls);
+
+        let mut maze = Maze::new();
+        maze.update_walls(0, 0, [false, false, true, false]);
+
+        assert_eq!([false, false, true, false], maze.segment(0, 0).walls);
+        assert_eq!([true, false, false, false], maze.segment(0, 1).walls);
+
+        let mut maze = Maze::new();
+        maze.update_walls(1, 0, [false, false, false, true]);
+
+        assert_eq!([false, false, false, true], maze.segment(1, 0).walls);
+        assert_eq!([false, true, false, false], maze.segment(0, 0).walls);
     }
 }

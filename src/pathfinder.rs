@@ -53,14 +53,14 @@ pub enum Target {
 ///
 /// ### Description
 ///
-/// Returns the segment `n` with the smallest non-strict distance to the target
-/// that is reachable from and a neighbour of `p`. `p` is any value in `path`.
+/// Returns the segment `n` with the strictly smallest distance to the target
+/// that is reachable from and a neighbour of `p`, with `p` being the last element in `path`.
 ///
 /// ### Implementation
 ///
-/// For every element in path, starting from the beginning, all neighbours are checked.
-/// If a neighbour `n` is reachable and has not yet been visited, it is considered as a potential
-/// minimal segment. If `n` has a lower distance than the current minimal segment, `n` becomes the
+/// Let `n_i` be any neighbour of `p` that is reachable and has not yet been visited.
+/// Any `n_i` is considered as a potential minimal segment.
+/// If `n_j` with `i != j` has a lower distance than the current minimal segment, `j` becomes the
 /// minimal segment.
 ///
 /// If the minimal segment is disconnected from the head, returns a path to the minimal segment.
@@ -77,6 +77,7 @@ pub enum Target {
 /// - [Result::Found] - A valid next segment has been found.
 /// - [Result::Stuck] - A valid next segment has been found, but it is not directly attached
 ///   to the head of `path`. Returns the path to the valid next segment.
+///   This path excludes the head of `path`.
 pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
     let head = path.head().expect("Failed to find path head");
@@ -201,6 +202,7 @@ pub fn update_distances(maze: &mut Maze, path: &Path) {
     }
 }
 
+/// TODO! document
 pub fn nearest_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu> {
     let mut to: Vec<Vecu> = Vec::with_capacity(MAZE_SIZE);
 
@@ -225,7 +227,6 @@ pub fn nearest_unvisited(maze: &Maze, path: &Path) -> Vec<Vecu> {
                 to.push(current.pos());
             }
             to.push(segment.pos());
-            println!("{:?}", to);
             return to;
         }
 

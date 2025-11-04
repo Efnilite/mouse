@@ -64,6 +64,13 @@ impl Vecf {
     pub fn new() -> Self {
         Vecf { x: 0f64, y: 0f64 }
     }
+
+    /// Returns the distance to `other`.
+    pub fn distance(&self, other: &Vecf) -> f64 {
+        let dx = self.x - other.x;
+        let dy = self.y - other.y;
+        f64::sqrt(dx * dx + dy * dy)
+    }
 }
 
 impl Default for Vecf {

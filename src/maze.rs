@@ -1,3 +1,4 @@
+use crate::pathfinder::Target;
 use crate::vec::Vecu;
 use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 use core::slice::Iter;
@@ -12,44 +13,72 @@ fn maze_calc_distance(x: u8, y: u8, cx: i8, cy: i8) -> u8 {
     (i8::abs((x as i8) - cx) + i8::abs((y as i8) - cy)) as u8
 }
 
-impl Maze {
-    /// Creates a new maze instance.
-    pub fn new() -> Self {
-        let mut points = [Segment::new(); MAZE_SIZE];
+/// Converts the position to the index for `segments`.
+fn xy_to_index(x: u8, y: u8) -> usize {
+    (x + y * MAZE_WIDTH_U8) as usize
+}
 
-        for x in 0..MAZE_WIDTH_U8 {
-            for y in 0..MAZE_HEIGHT_U8 {
-                let distances = [
-                    maze_calc_distance(x, y, 8, 8),
-                    maze_calc_distance(x, y, 7, 8),
-                    maze_calc_distance(x, y, 8, 7),
-                    maze_calc_distance(x, y, 7, 7),
-                ];
+/// Converts the position to the index for `segments`.
+fn pos_to_index(pos: Vecu) -> usize {
+    xy_to_index(pos.x, pos.y)
+}
 
-                points[(x + y * MAZE_WIDTH_U8) as usize] = Segment {
-                    pos: Vecu { x, y },
-                    distance: *distances.iter().min().unwrap(),
-                    walls: [false, false, false, false],
-                };
-            }
+/// Creates a new Maze with the provided walls.
+fn with_walls_fn<T>(target: Target, walls: T) -> Maze
+where
+    T: Fn(u8, u8) -> [bool; 4],
+{
+    let mut points = [Segment::new(); MAZE_SIZE];
+
+    let distances;
+
+    match target {
+        Target::Center => {
+            distances = [
+                |x, y| maze_calc_distance(x, y, 8, 8),
+                |x, y| maze_calc_distance(x, y, 7, 8),
+                |x, y| maze_calc_distance(x, y, 8, 7),
+                |x, y| maze_calc_distance(x, y, 7, 7),
+            ];
         }
-
-        Maze { segments: points }
+        Target::Origin => {
+            distances = [
+                |x, y| maze_calc_distance(x, y, 0, 0),
+                |_x, _y| u8::MAX,
+                |_x, _y| u8::MAX,
+                |_x, _y| u8::MAX,
+            ];
+        }
     }
 
-    /// Converts the position to the index for `segments`.
-    fn xy_to_index(&self, x: u8, y: u8) -> usize {
-        (x + y * MAZE_WIDTH_U8) as usize
+    for x in 0..MAZE_WIDTH_U8 {
+        for y in 0..MAZE_HEIGHT_U8 {
+            points[xy_to_index(x, y)] = Segment {
+                pos: Vecu { x, y },
+                distance: *distances.map(|f| f(x, y)).iter().min().unwrap(),
+                walls: walls(x, y),
+            };
+        }
     }
 
-    /// Converts the position to the index for `segments`.
-    fn pos_to_index(&self, pos: Vecu) -> usize {
-        self.xy_to_index(pos.x, pos.y)
+    Maze { segments: points }
+}
+
+impl Maze {
+
+    /// Creates a new maze centered around the center.
+    pub fn new() -> Self {
+        with_walls_fn(Target::Center, |_x, _y| [false, false, false, false])
+    }
+
+    /// Creates a new maze with the specified target and the existing maze to use walls from.
+    pub fn with_walls(target: Target, maze: Maze) -> Self {
+        with_walls_fn(target, |x, y| maze.segment(x, y).walls)
     }
 
     /// Returns the segment at `x, y`.
     pub fn segment(&self, x: u8, y: u8) -> Segment {
-        self.segments[self.xy_to_index(x, y)]
+        self.segments[xy_to_index(x, y)]
     }
 
     /// Returns the segment at `x, y`.
@@ -59,7 +88,7 @@ impl Maze {
 
     /// Adds a wall at the specified direction.
     fn _add_wall(&mut self, x: u8, y: u8, direction: Relative) {
-        let i = self.xy_to_index(x, y);
+        let i = xy_to_index(x, y);
         let mut existing = self.segments[i];
         existing.walls[direction as usize] = true;
         self.segments[i] = existing;
@@ -67,7 +96,7 @@ impl Maze {
 
     /// Updates the walls of the segment at `x, y` to the specified array.
     pub fn update_walls(&mut self, x: u8, y: u8, walls: [bool; 4]) {
-        let i = self.xy_to_index(x, y);
+        let i = xy_to_index(x, y);
         let mut existing = self.segments[i];
 
         for (i, val) in existing.walls.iter().enumerate() {
@@ -93,7 +122,7 @@ impl Maze {
 
             let mut relative = relative.unwrap();
             relative.walls[dir.opposite() as usize] = true;
-            self.segments[self.pos_to_index(relative.pos())] = relative;
+            self.segments[pos_to_index(relative.pos())] = relative;
         }
     }
 
@@ -185,10 +214,10 @@ impl Segment {
     }
 
     /// Creates a new default Segment.
-    pub fn with_pos(pos: Vecu, distance: u8) -> Self {
+    pub fn with_pos(pos: Vecu) -> Self {
         Segment {
             pos,
-            distance,
+            distance: u8::MAX,
             walls: [false, false, false, false],
         }
     }

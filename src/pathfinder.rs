@@ -1,7 +1,7 @@
 use crate::map::Map;
 use crate::maze::{Maze, Relative, Segment};
 use crate::path::Path;
-use crate::vec::{Vecf, Vecu};
+use crate::vec::Vecu;
 use std::collections::VecDeque;
 
 /// The result of an attempted pathfinding using [next].
@@ -48,39 +48,6 @@ pub enum Target {
     Origin,
 }
 
-impl Target {
-    /// Represents the initial distance of the min/max segment.
-    fn initial_distance(&self) -> u8 {
-        match self {
-            Target::Center => u8::MAX,
-            Target::Origin => 0,
-        }
-    }
-
-    /// The comparator used for finding the next segment.
-    fn next(&self, a: &Segment, b: &Segment) -> bool {
-        match self {
-            Target::Center => a.distance <= b.distance,
-            Target::Origin => a.distance >= b.distance,
-        }
-    }
-
-    /// The comparator used for determining whether the head of the path is in a loop.
-    fn stuck(&self, a: &Segment, b: &Segment) -> bool {
-        match self {
-            Target::Center => a.distance <= b.distance,
-            Target::Origin => a.distance > b.distance,
-        }
-    }
-
-    fn pos(&self) -> Vecf {
-        match self {
-            Target::Center => Vecf { x: 7.5, y: 7.5 },
-            Target::Origin => Vecf { x: 0., y: 0. },
-        }
-    }
-}
-
 /// Attempts to find the next segment based on `maze` and the taken `path`.
 ///
 /// ### Description
@@ -109,16 +76,16 @@ impl Target {
 /// - [Result::Found] - A valid next segment has been found.
 /// - [Result::Stuck] - A valid next segment has been found, but it is not directly attached
 ///   to the head of `path`. Returns the path to the valid next segment.
-pub fn next(maze: &Maze, path: &Path, target: Target) -> Result {
+pub fn next(maze: &Maze, path: &Path) -> Result {
     // the smallest segment so far
-    let mut min_segment = Segment::with_pos(path.segment(0).unwrap(), target.initial_distance());
+    let mut min_segment = Segment::with_pos(path.segment(0).unwrap());
     // the distance from min segment to the current head in the loop
     let mut distance_from_head = 0usize;
 
     for i in (0..path.len()).rev() {
         let current = maze.segment_vec(path.segment(i).expect("Failed to find path segment"));
 
-        'dirs: for (j, dir) in Relative::iter().enumerate().rev() {
+        'dirs: for (j, dir) in Relative::iter().enumerate() {
             if current.walls[j] {
                 continue 'dirs;
             }
@@ -135,15 +102,15 @@ pub fn next(maze: &Maze, path: &Path, target: Target) -> Result {
                 continue 'dirs;
             }
 
-            if target.next(&segment, &min_segment) {
+            if &segment.distance < &min_segment.distance {
                 min_segment = segment;
                 distance_from_head = i;
             }
         }
     }
 
-    if target.stuck(&maze.segment_vec(path.head().unwrap()), &min_segment) {
-        let mut to_min: Vec<Vecu> = Vec::new();
+    if &maze.segment_vec(path.head().unwrap()).distance < &min_segment.distance {
+        let mut to_min: Vec<Vecu> = Vec::with_capacity(path.len() - distance_from_head);
         for i in (distance_from_head..path.len() - 1).rev() {
             // - 1 to skip head
             to_min.push(path.segment(i).unwrap());
@@ -292,7 +259,6 @@ mod tests {
     use crate::maze::Maze;
     use crate::path::Path;
     use crate::pathfinder;
-    use crate::pathfinder::Target;
     use crate::vec::Vecu;
 
     /// Finds any segment that has a distance of zero.
@@ -306,7 +272,7 @@ mod tests {
         path.append(Vecu::new());
 
         loop {
-            let result = pathfinder::next(&maze, &path, Target::Center);
+            let result = pathfinder::next(&maze, &path);
 
             match result {
                 pathfinder::Result::Found(next) => {

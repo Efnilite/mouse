@@ -1,5 +1,5 @@
 use crate::vec::Vecu;
-use crate::{MAZE_HEIGHT_U8, MAZE_WIDTH_U8};
+use crate::{MAZE_HEIGHT_U8, MAZE_SIZE, MAZE_WIDTH_U8};
 
 pub const ACCELERATION_MS2: f64 = 2.;
 pub const MAX_SPEED_MS: f64 = 5.;
@@ -15,7 +15,7 @@ impl Path {
     /// Returns a new path instance
     pub fn new() -> Self {
         Path {
-            segments: Vec::new(),
+            segments: Vec::with_capacity(MAZE_SIZE),
             optimized: false,
         }
     }
@@ -114,7 +114,7 @@ impl Path {
     /// Assigns `self.segments` to a new optimized [Vec].
     /// todo! avoid bulk optimization and optimize as soon as append_all/append is called
     pub fn optimize(&mut self) {
-        let mut optimized: Vec<Vecu> = Vec::new();
+        let mut optimized: Vec<Vecu> = Vec::with_capacity(MAZE_SIZE);
 
         let mut i = 0;
         'outer: while i < self.segments.len() {

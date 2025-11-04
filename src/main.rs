@@ -26,7 +26,7 @@ fn main() {
 
     // first deep dive
     loop {
-        let result = pathfinder::next(&maze, &first, Target::Center);
+        let result = pathfinder::next(&maze, &first);
 
         match result {
             pathfinder::Result::Found(next) => {
@@ -46,18 +46,17 @@ fn main() {
 
     // todo find first unvisited node
     first.optimize();
-    println!("{:?}", first);
+
+    let mut maze = Maze::with_walls(Target::Origin, maze);
     let mut second = pathfinder::nearest_unvisited(&maze, &first);
 
+    println!("{:?}", maze);
     println!("{:?}", second);
 
     // second
     loop {
-        let result = pathfinder::next(&maze, &second, Target::Origin);
-
-        if second.len() % 10 == 0 {
-            println!("{:?}", second);
-        }
+        let result = pathfinder::next(&maze, &second);
+        println!("{:?}", second);
 
         match result {
             pathfinder::Result::Found(next) => {
@@ -76,6 +75,6 @@ fn main() {
 
     second.optimize();
 
-    // println!("{:?}", second);
+    println!("{:?}", second);
     println!("{:?}", maze);
 }

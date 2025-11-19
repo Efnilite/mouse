@@ -97,7 +97,6 @@ impl Vecf {
         self.x = self.x + vec.x;
         self.y = self.y + vec.y;
     }
-
 }
 
 impl Default for Vecf {

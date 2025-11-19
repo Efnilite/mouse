@@ -71,6 +71,33 @@ impl Vecf {
         let dy = self.y - other.y;
         f64::sqrt(dx * dx + dy * dy)
     }
+
+    /// Returns the length of this vector.
+    pub fn length(&self) -> f64 {
+        f64::sqrt(self.x + self.y)
+    }
+
+    /// Normalizes this vector to a length of one.
+    pub fn normalize(&mut self) {
+        let len = self.length();
+        self.x = self.x / len;
+        self.y = self.y / len;
+    }
+
+    /// Rotates counter-clockwise over `a` radians at the origin.
+    pub fn rotate(&mut self, a: f64) {
+        let x = self.x * f64::cos(a) - self.y * f64::sin(a);
+        let y = self.x * f64::sin(a) + self.y * f64::cos(a);
+        self.x = x;
+        self.y = y;
+    }
+
+    /// Adds a `Vecf` to the current vec.
+    pub fn add(&mut self, vec: Vecf) {
+        self.x = self.x + vec.x;
+        self.y = self.y + vec.y;
+    }
+
 }
 
 impl Default for Vecf {
